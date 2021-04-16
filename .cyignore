@@ -1,0 +1,6 @@
+# Some files (e.g. lfs_filebd.c) in this folder use POSIX file APIs such as
+# open(), close() and POSIX APIs are not supported by ModusToolbox. However,
+# compilation of these files would succeed on GCC_ARM and fail on IAR and ARMC6
+# compilers. 
+
+$(SEARCH_littlefs)/bd
