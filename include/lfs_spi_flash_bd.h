@@ -9,7 +9,7 @@
  *
  *******************************************************************************
  * \copyright
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * (c) (2021-2022), Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -40,7 +40,7 @@
  * of such system or application assumes all risk of such use and in doing
  * so agrees to indemnify Cypress against all liability.
  *
- * Based upon lfs_rambd.h from littlefs repo 
+ * Based upon lfs_rambd.h from littlefs repo
  * [https://github.com/littlefs-project/littlefs/blob/master/bd/lfs_rambd.h]
  * Copyright (c) 2017, Arm Limited. All rights reserved
  *******************************************************************************/

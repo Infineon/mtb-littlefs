@@ -18,7 +18,8 @@ var group__group__lfs__sd__bd =
       [ "card_if_pwr_en", "group__group__lfs__sd__bd.html#a8d3ae5078994837264ebb850c9a50cdf", null ],
       [ "card_mech_write_prot", "group__group__lfs__sd__bd.html#add99e56a0aa16b3d6d1c8ca15aebe7c0", null ],
       [ "led_ctrl", "group__group__lfs__sd__bd.html#a68c02e6971243a7fb5871d3fb63e83a3", null ],
-      [ "card_emmc_reset", "group__group__lfs__sd__bd.html#afaace2ec96743dbde0dc39ac560d4017", null ]
+      [ "card_emmc_reset", "group__group__lfs__sd__bd.html#afaace2ec96743dbde0dc39ac560d4017", null ],
+      [ "block_clk", "group__group__lfs__sd__bd.html#abf1b0a68dc3cef2d433d1534564d3471", null ]
     ] ],
     [ "LFS_SD_BD_TRACE", "group__group__lfs__sd__bd.html#ga660549d6086f7305914ede9d836fc000", null ],
     [ "lfs_sd_bd_get_default_config", "group__group__lfs__sd__bd.html#ga16ca46e85a98b5d1a1f183df6a8940a6", null ],

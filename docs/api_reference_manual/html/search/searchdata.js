@@ -3,7 +3,7 @@ var indexSectionsWithContent =
   0: "bcdfilms",
   1: "l",
   2: "l",
-  3: "cdfilms",
+  3: "bcdfilms",
   4: "s",
   5: "b"
 };

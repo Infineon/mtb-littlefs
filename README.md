@@ -2,32 +2,32 @@
 
 ## Overview
 
-Provides a set of block device drivers for use with the [littlefs](https://github.com/littlefs-project/littlefs) file system. The interface of the drivers is very similar to [lfs_rambd.h](https://github.com/littlefs-project/littlefs/blob/master/bd/lfs_rambd.h) provided with littlefs. See the API reference manual for driver-specific information.
+Provides a set of block device drivers for the
+[littlefs](https://github.com/littlefs-project/littlefs) file system.
+The drivers' interface is very similar to
+[lfs_rambd.h](https://github.com/littlefs-project/littlefs/blob/master/bd/lfs_rambd.h)
+provided with littlefs. See the API reference manual for driver-specific information.
 
 ## Features
 
-- Supports SPI flash and SD card (card mode) block devices
-
-- Each driver provides a function to fetch the default configuration of the block device
-
-- Implements thread safety for use with multi-threaded RTOS environments using the [abstraction-rtos](https://github.com/cypresssemiconductorco/abstraction-rtos) library
-
-- Built on top of existing drivers such as [serial-flash](https://github.com/cypresssemiconductorco/serial-flash) and HAL
+- Supports SPI flash and SD card (Card mode) block devices
+- Each driver provides the function to fetch the default configuration of the block device
+- Implements the thread safety for multi-threaded RTOS environments using the
+  [abstraction-rtos](https://github.com/Infineon/abstraction-rtos) library
+- Built on top of existing drivers such as
+  [serial-flash](https://github.com/Infineon/serial-flash) and HAL
 
 - Supports Serial Flash Discoverable Parameter (SFDP) mode for SPI flash memories
 
-## Quick Start
+## Quick start
 
-See the [mtb-example-psoc6-filesystem-littlefs-freertos](https://github.com/cypresssemiconductorco/mtb-example-psoc6-filesystem-littlefs-freertos) code example that shows implementing littlefs file system on SD card and QSPI NOR flash.
+The [mtb-example-psoc6-filesystem-littlefs-freertos](https://github.com/Infineon/mtb-example-psoc6-filesystem-littlefs-freertos)
+code example describes the implementation of the littlefs file system on SD card and QSPI NOR flash.
 
-1. Create an empty application using the Project Creator tool in ModusToolbox® software.
-
-2. Add *mtb-littlefs* and *retarget-io* libraries using the Library Manager tool.
-
+1. Create an empty application using the Project Creator tool in the ModusToolbox™ software.
+2. Add the *mtb-littlefs* and *retarget-io* libraries using the Library Manager.
 3. Add the below code to *main.c*.
-
-4. Open a serial terminal.
-
+4. Open a serial terminal. Set the serial port parameters to 8N1 and 115200 baud.
 5. Build the application and program the kit.
 
    ```cpp
@@ -122,66 +122,53 @@ See the [mtb-example-psoc6-filesystem-littlefs-freertos](https://github.com/cypr
    }
    ```
 
-## Usage Instructions
+## Usage instructions
 
-### When used in an RTOS environment:
+### For the usage in an RTOS environment:
 
-1. Add [FreeRTOS](https://github.com/cypresssemiconductorco/freertos) using the Library Manager tool if FreeRTOS is your choice of RTOS.
+1. Add [FreeRTOS](https://github.com/Infineon/freertos) using the
+   Library Manager if FreeRTOS is your choice of RTOS.
+2. Add [abstraction-rtos](https://github.com/Infineon/abstraction-rtos)
+   using the Library Manager tool if you are using an RTOS other than FreeRTOS.
+   *abstraction-rtos* is added automatically when you add FreeRTOS using the Library Manager.
+3. Add `FREERTOS` to the components list when using FreeRTOS.
+4. Add `DEFINES=LFS_THREADSAFE` to enable the thread-safety for the littlefs APIs.
+5. Add `COMPONENTS=RTOS_AWARE` in the Makefile to enable RTOS-friendly features,
+   such as waiting on a semaphore until read completion is indicated through an interrupt or a callback.
 
-2. Add [abstraction-rtos](https://github.com/cypresssemiconductorco/abstraction-rtos) using the Library Manager tool if you are using an RTOS other than FreeRTOS. *abstraction-rtos* is added automatically when you add FreeRTOS using the Library Manager.
-
-3. Add `FREERTOS` to the components list if you are using FreeRTOS.
-
-4. Add `DEFINES=LFS_THREADSAFE` to enable thread-safety for the littlefs APIs.
-
-5. Add `COMPONENTS=RTOS_AWARE` in the Makefile to enable RTOS-friendly features such as waiting on a semaphore until read completion is indicated through an interrupt or a callback.
-
-**Note:** The source files under *\<littlefs_path\>/bd* are ignored from auto-discovery and therefore they will be excluded from compilation because some of the files (e.g., *lfs_filebd.c*) use POSIX file APIs such as `open()` and `close()`. POSIX APIs are not supported by ModusToolbox. If you implement POSIX APIs, you can include those files for compilation by adding them to the `SOURCES` and `INCLUDES` variables in the Makefile.
+**Note:** The source files under *\<littlefs_path\>/bd* are ignored from
+auto-discovery. Therefore, they will be excluded from compilation because some
+of the files (e.g., *lfs_filebd.c*) use POSIX file APIs such as `open()` and
+`close()`. POSIX APIs are not supported by the ModusToolbox™. If you implement POSIX
+APIs, you can include those files for compilation by adding them to the `SOURCES`
+and `INCLUDES` variables in the Makefile.
 
 ## Dependencies
 
-The dependencies except *abstraction-rtos* are automatically pulled in when you run the `make getlibs` command in ModusToolbox.
+The dependencies except *abstraction-rtos* are automatically pulled in when you
+run the `make getlibs` command in the ModusToolbox™.
 
 - [littlefs](https://github.com/littlefs-project/littlefs)
+- [serial-flash](https://github.com/Infineon/serial-flash)
+- [abstraction-rtos](https://github.com/Infineon/abstraction-rtos) library if RTOS support is required.
 
-- [serial-flash](https://github.com/cypresssemiconductorco/serial-flash)
-
-- [abstraction-rtos](https://github.com/cypresssemiconductorco/abstraction-rtos) library if RTOS support is required.
-
-    **Note:** *abstraction-rtos* is automatically pulled in only when you add FreeRTOS using the Library Manager; otherwise, you need to add it manually.
-
-## Supported Toolchains
-
-- GNU Arm® Embedded Compiler v9.3.1 (`GCC_ARM`)
-
-- Arm compiler v6.13 (`ARM`)
-
-- IAR C/C++ compiler v8.42.2 (`IAR`)
+    **Note:** *abstraction-rtos* is automatically pulled in only when you add FreeRTOS using the Library Manager; otherwise, add it manually.
 
 ## Supported Devices
 
-- All PSoC® 6 MCUs
+- PSoC™ 6 MCUs
 
 ## More Information
 
-- [API Reference Guide](https://cypresssemiconductorco.github.io/mtb-littlefs/api_reference_manual/html/index.html)
-
-- <a href="https://github.com/cypresssemiconductorco/mtb-littlefs/blob/master/RELEASE.md">Release Notes</a>
-
-- [mtb-example-psoc6-filesystem-littlefs-freertos](https://github.com/cypresssemiconductorco/mtb-example-psoc6-filesystem-littlefs-freertos) code example
-
-- [littlefs filesystem](https://github.com/littlefs-project/littlefs)
-
-- [Cypress Semiconductor GitHub](https://github.com/cypresssemiconductorco)
-
-- [ModusToolbox](https://www.cypress.com/products/modustoolbox-software-environment)
-
-- [PSoC 6 MCU Code Examples using ModusToolbox](https://github.com/cypresssemiconductorco/Code-Examples-for-ModusToolbox-Software)
-
-- [PSoC 6 MCU Middleware](https://github.com/cypresssemiconductorco/psoc6-middleware)
-
-- [PSoC 6 MCU Resources - KBA223067](https://community.cypress.com/docs/DOC-14644)
-
+- <a href="https://github.com/Infineon/mtb-littlefs/blob/master/RELEASE.md">RELEASE.md</a>
+- [API Reference Guide](https://infineon.github.io/mtb-littlefs/api_reference_manual/html/index.html)
+- [PSoC™ 6 MCU: littlefs Filesystem](https://github.com/Infineon/mtb-example-psoc6-filesystem-littlefs-freertos) code example
+- [Littlefs filesystem](https://github.com/littlefs-project/littlefs)
+- [Infineon GitHub](https://github.com/Infineon)
+- [ModusToolbox™ software GitHub](https://github.com/Infineon/modustoolbox-software)
+- [ModusToolbox™ Software](https://www.infineon.com/cms/en/design-support/tools/sdk/modustoolbox-software/)
+- [PSoC™ 6 MCU Code Examples using ModusToolbox™](https://github.com/Infineon/Code-Examples-for-ModusToolbox-Software)
+- [How to Design with PSoC™ 6 MCU - KBA223067](https://community.infineon.com/t5/Knowledge-Base-Articles/How-to-Design-with-PSoC-6-MCU-KBA223067/ta-p/248857)
 
 ---
-© 2021 Cypress Semiconductor Corporation, an Infineon Technologies Company.
+© 2021-2022 Cypress Semiconductor Corporation, an Infineon Technologies Company.

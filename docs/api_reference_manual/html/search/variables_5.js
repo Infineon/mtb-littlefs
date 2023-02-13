@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['mem_5fconfig',['mem_config',['../group__group__lfs__spi__flash__bd.html#a0cef0e2e4361cd293eb1a497e859f8ce',1,'lfs_spi_flash_bd_config_t']]]
+  ['led_5fctrl',['led_ctrl',['../group__group__lfs__sd__bd.html#a68c02e6971243a7fb5871d3fb63e83a3',1,'lfs_sd_bd_config_t']]]
 ];

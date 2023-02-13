@@ -4,3 +4,4 @@
 # compilers. 
 
 $(SEARCH_littlefs)/bd
+docs

@@ -8,7 +8,7 @@
  *
  *******************************************************************************
  * \copyright
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * (c) (2021-2022), Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -39,7 +39,7 @@
  * of such system or application assumes all risk of such use and in doing
  * so agrees to indemnify Cypress against all liability.
  *
- * Based upon lfs_rambd.h from littlefs repo 
+ * Based upon lfs_rambd.h from littlefs repo
  * [https://github.com/littlefs-project/littlefs/blob/master/bd/lfs_rambd.h]
  * Copyright (c) 2017, Arm Limited. All rights reserved
  *******************************************************************************/
@@ -117,6 +117,7 @@ typedef struct
     cyhal_gpio_t card_mech_write_prot; /**< The pin connected to the write protect signal. */
     cyhal_gpio_t led_ctrl; /**< The pin connected to the LED control signal. */
     cyhal_gpio_t card_emmc_reset; /**< The pin connected to the eMMC card reset signal. */
+    cyhal_clock_t * block_clk; /**< The clock to use can be shared, if not provided a new clock will be allocated. */
 } lfs_sd_bd_config_t;
 
 /**
