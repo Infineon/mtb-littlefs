@@ -171,4 +171,4 @@ run the `make getlibs` command in the ModusToolbox™.
 - [How to Design with PSoC™ 6 MCU - KBA223067](https://community.infineon.com/t5/Knowledge-Base-Articles/How-to-Design-with-PSoC-6-MCU-KBA223067/ta-p/248857)
 
 ---
-© 2021-2022 Cypress Semiconductor Corporation, an Infineon Technologies Company.
+© 2021-2023 Cypress Semiconductor Corporation, an Infineon Technologies Company.

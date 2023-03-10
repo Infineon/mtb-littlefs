@@ -8,7 +8,7 @@
  *
  *******************************************************************************
  * \copyright
- * (c) (2021-2022), Cypress Semiconductor Corporation (an Infineon company) or
+ * (c) (2021-2023), Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related

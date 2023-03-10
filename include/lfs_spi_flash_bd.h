@@ -4,12 +4,12 @@
  * \brief
  * Implements the block device driver functions for SPI NOR flash for use with
  * the littlefs API. Makes use of the
- * <a href="https://github.com/cypresssemiconductorco/serial-flash">serial-flash</a>
+ * <a href="https://github.com/Infineon/serial-flash">serial-flash</a>
  * library.
  *
  *******************************************************************************
  * \copyright
- * (c) (2021-2022), Cypress Semiconductor Corporation (an Infineon company) or
+ * (c) (2021-2023), Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -50,7 +50,7 @@
  * \{
  * * Implements the block device driver functions for SPI NOR flash for use with the
  * littlefs API.
- * * Makes use of the <a href="https://github.com/cypresssemiconductorco/serial-flash">serial-flash</a>
+ * * Makes use of the <a href="https://github.com/Infineon/serial-flash">serial-flash</a>
  * library.
  * * Uses the SFDP protocol to automatically discover the flash parameters.
  * * Provides \ref lfs_sd_bd_lock() and \ref lfs_sd_bd_unlock() functions for
@@ -91,7 +91,7 @@ extern "C"
 /**
  * Configuration structure for the SPI flash block device. The members of this
  * structure is passed to the cy_serial_flash_qspi_init() API. See the
- * <a href="https://cypresssemiconductorco.github.io/serial-flash/html/index.html">serial-flash API reference manual</a>
+ * <a href="https://infineon.github.io/serial-flash/html/index.html">serial-flash API reference manual</a>
  * for details.
  */
 typedef struct

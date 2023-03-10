@@ -1,4 +1,4 @@
-# Block Device Drivers for littlefs v2.0
+# Block Device Drivers for littlefs v2.0.1
 
 ## What's Included?
 
@@ -7,8 +7,7 @@ For details, refer to [README.md](./README.md) and the
 
 New in the release:
 
-* Support of the ModusToolbox HAL Cat1 v2.x
-* Support of the ModusToolbox 3.0
+* Minor changes in documentation
 
 ## Known issues and limitations
 
@@ -34,6 +33,7 @@ This version was validated for compatibility with the following software and too
 | GCC Compiler                              | 10.3.1  |
 | IAR Compiler                              | 9.30.1  |
 | Arm® Compiler 6                           | 6.16    |
+| Littlefs                                  | 2.4.0   |
 
 Minimum required ModusToolbox™ Software Environment: ModusToolbox™ v3.0 and
 HAL Cat1 2.0
@@ -51,4 +51,4 @@ HAL Cat1 2.0
 * [How to Design with PSoC™ 6 MCU - KBA223067](https://community.infineon.com/t5/Knowledge-Base-Articles/How-to-Design-with-PSoC-6-MCU-KBA223067/ta-p/248857)
 
 ---
-© 2021-2022 Cypress Semiconductor Corporation, an Infineon Technologies Company.
+© 2021-2023 Cypress Semiconductor Corporation, an Infineon Technologies Company.

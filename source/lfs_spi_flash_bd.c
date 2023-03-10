@@ -4,12 +4,12 @@
  * \brief
  * Implements the block device driver functions for SPI NOR flash for use with
  * littlefs API. Makes use of the
- * <a href="https://github.com/cypresssemiconductorco/serial-flash">serial-flash</a>
+ * <a href="https://github.com/Infineon/serial-flash">serial-flash</a>
  * library.
  *
  *******************************************************************************
  * \copyright
- * (c) (2021-2022), Cypress Semiconductor Corporation (an Infineon company) or
+ * (c) (2021-2023), Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
