@@ -19,6 +19,12 @@ provided with littlefs. See the API reference manual for driver-specific informa
 
 - Supports Serial Flash Discoverable Parameter (SFDP) mode for SPI flash memories
 
+### Devices and supported features:
+| Device | SPI flash | SD card       |
+|:-------|----------:|--------------:|
+| CAT1A  | Supported | Supported     |
+| CAT1B  | Supported | Not supported |
+
 ## Quick start
 
 The [mtb-example-psoc6-filesystem-littlefs-freertos](https://github.com/Infineon/mtb-example-psoc6-filesystem-littlefs-freertos)
@@ -27,8 +33,9 @@ code example describes the implementation of the littlefs file system on SD card
 1. Create an empty application using the Project Creator tool in the ModusToolbox™ software.
 2. Add the *mtb-littlefs* and *retarget-io* libraries using the Library Manager.
 3. Add the below code to *main.c*.
-4. Open a serial terminal. Set the serial port parameters to 8N1 and 115200 baud.
-5. Build the application and program the kit.
+4. For PSoC™ Edge E84 MCUs, add macro ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH to the DEFINES variable in the project Makefile.
+5. Open a serial terminal. Set the serial port parameters to 8N1 and 115200 baud.
+6. Build the application and program the kit.
 
    ```cpp
    #include "cybsp.h"
@@ -36,91 +43,107 @@ code example describes the implementation of the littlefs file system on SD card
    #include "lfs.h"
    #include "lfs_spi_flash_bd.h"
    
-   void check_status(char *message, uint32_t status)
+   #if defined (COMPONENT_CAT1B)
+   #define FLASH_LFS_ADDRESS_START                 (0x80000U)
+   #define FLASH_LFS_SIZE                          (0x80000U)
+   #endif /* #if defined (COMPONENT_CAT1B) */
+   
+   void check_status(const char *message, uint32_t status); /* Functions must have interface definition before declarations to satisfy MISRA C-2012 */
+   
+   void check_status(const char *message, uint32_t status)
    {
-      if (0u != status)
-      {
-          printf("\n================================================================================\n");
-          printf("\nFAIL: %s\n", message);
-          printf("Error Code: 0x%08"PRIx32"\n", status);
-          printf("\n================================================================================\n");
-          
-          while(true);
-      }
+       if (0u != status)
+       {
+           (void)printf("\n================================================================================\n");
+           (void)printf("\nFAIL: %s\n", message);
+           (void)printf("Error Code: 0x%08"PRIx32"\n", status);
+           (void)printf("\n================================================================================\n");
+   
+           while(true)
+           {
+           }
+       }
    }
    
    int main(void)
    {
-      cy_rslt_t result;
-      uint32_t boot_count = 0;
+       cy_rslt_t result;
+       uint32_t boot_count = 0;
    
-      /* variables used by the filesystem */
-      lfs_t lfs;
-      struct lfs_config lfs_cfg;
-      lfs_file_t file;
-      lfs_spi_flash_bd_config_t bd_cfg;
+       /* variables used by the filesystem */
+       lfs_t lfs_inst;
+       struct lfs_config lfs_cfg;
+       lfs_file_t file;
+       lfs_spi_flash_bd_config_t bd_cfg;
    
-      /* Initialize the device and board peripherals */
-      result = cybsp_init() ;
-      CY_ASSERT (result == CY_RSLT_SUCCESS);
+       /* Initialize the device and board peripherals */
+       result = cybsp_init();
+       CY_ASSERT (result == CY_RSLT_SUCCESS);
    
-      /* Enable global interrupts */
-      __enable_irq();
+       /* Enable global interrupts */
+       __enable_irq();
    
-      /* Initialize retarget-io to use the debug UART port */
-      cy_retarget_io_init(CYBSP_DEBUG_UART_TX, CYBSP_DEBUG_UART_RX, CY_RETARGET_IO_BAUDRATE);
+       /* Initialize retarget-io to use the debug UART port */
+       (void)cy_retarget_io_init(CYBSP_DEBUG_UART_TX, CYBSP_DEBUG_UART_RX, CY_RETARGET_IO_BAUDRATE);
    
-      printf("\nIncrementing the boot count on SPI flash\n\n");
+       (void)printf("\nIncrementing the boot count on SPI flash\n\n");
    
-      /* Get the default configuration for the SPI flash block device. */
-      lfs_spi_flash_bd_get_default_config(&bd_cfg);
+       /* Get the default configuration for the SPI flash block device. */
+       lfs_spi_flash_bd_get_default_config(&bd_cfg);
    
-      /* Initialize the pointers in lfs_cfg to NULL. */
-      memset(&lfs_cfg, 0, sizeof(lfs_cfg));
+       /* Initialize the pointers in lfs_cfg to NULL. */
+       (void)memset(&lfs_cfg, 0, sizeof(lfs_cfg));
    
-      /* Create the SPI flash block device. */
-      result = lfs_spi_flash_bd_create(&lfs_cfg, &bd_cfg);
-      check_status("Creating SPI flash block device failed.", result);
+   #if defined (COMPONENT_CAT1B)
+       lfs_spi_flash_bd_configure_memory(&lfs_cfg, FLASH_LFS_ADDRESS_START, FLASH_LFS_SIZE);
+   #endif /* #if defined (COMPONENT_CAT1B) */
    
-      printf("Number of blocks: %"PRIu32"\n", lfs_cfg.block_count);
-      printf("Erase block size: %"PRIu32" bytes\n", lfs_cfg.block_size);
-      printf("Prog size: %"PRIu32" bytes\n", lfs_cfg.prog_size);
+       /* Create the SPI flash block device. */
+       result = lfs_spi_flash_bd_create(&lfs_cfg, &bd_cfg);
+       check_status("Creating SPI flash block device failed.", result);
    
-      /* Mount the filesystem */
-      int err = lfs_mount(&lfs, &lfs_cfg);
+       (void)printf("Number of blocks: %"PRIu32"\n", lfs_cfg.block_count);
+       (void)printf("Erase block size: %"PRIu32" bytes\n", lfs_cfg.block_size);
+       (void)printf("Prog size: %"PRIu32" bytes\n", lfs_cfg.prog_size);
    
-      /* Reformat if we cannot mount the filesystem.
+       /* Mount the filesystem */
+       int32_t err = lfs_mount(&lfs_inst, &lfs_cfg);
+   
+       /* Reformat if we cannot mount the filesystem.
        * This should only happen on the first boot.
        */
-      if (err) {
-          lfs_format(&lfs, &lfs_cfg);
-          lfs_mount(&lfs, &lfs_cfg);
-      }
+       if (err != 0) {
+           (void)lfs_format(&lfs_inst, &lfs_cfg);
+           (void)lfs_mount(&lfs_inst, &lfs_cfg);
+       }
    
-      /* Read the current boot count. */
-      lfs_file_open(&lfs, &file, "boot_count", LFS_O_RDWR | LFS_O_CREAT);
-      lfs_file_read(&lfs, &file, &boot_count, sizeof(boot_count));
+       /* Read the current boot count. */
+       (void)lfs_file_open(&lfs_inst, &file, "boot_count", (int32_t)((uint32_t)LFS_O_RDWR | (uint32_t)LFS_O_CREAT)); /* The argument of arithmetic operation must be an unsigned integer but the argument lfs_file_open is defined by a third party and has type signed integer. For MISRA C-2012 */
+       (void)lfs_file_read(&lfs_inst, &file, &boot_count, sizeof(boot_count));
    
-      /* Update the boot count. */
-      boot_count += 1;
-      lfs_file_rewind(&lfs, &file);
-      lfs_file_write(&lfs, &file, &boot_count, sizeof(boot_count));
+       /* Update the boot count. */
+       boot_count += 1u;
+       (void)lfs_file_rewind(&lfs_inst, &file);
+       (void)lfs_file_write(&lfs_inst, &file, &boot_count, sizeof(boot_count));
    
-      /* The storage is not updated until the file is closed successfully. */
-      lfs_file_close(&lfs, &file);
+       /* The storage is not updated until the file is closed successfully. */
+       (void)lfs_file_close(&lfs_inst, &file);
    
-      /* Release any resources we were using. */
-      lfs_unmount(&lfs);
+       /* Release any resources we were using. */
+       (void)lfs_unmount(&lfs_inst);
    
-      /* Print the boot count. */
-      printf("\nboot_count: %"PRIu32"\n", boot_count);
+       /* Print the boot count. */
+       (void)printf("\nboot_count: %"PRIu32"\n", boot_count);
    
-      /* Free the resources associated with the block device. */
-      lfs_spi_flash_bd_destroy(&lfs_cfg);
+       /* Free the resources associated with the block device. */
+       lfs_spi_flash_bd_destroy(&lfs_cfg);
    
-      for (;;) {}
+       for (;;) 
+       {
+       }
    }
    ```
+
 
 ## Usage instructions
 
@@ -156,7 +179,8 @@ run the `make getlibs` command in the ModusToolbox™.
 
 ## Supported Devices
 
-- PSoC™ 6 MCUs
+- PSoC™ 6 MCUs        (CAT1A)
+- AIROC™ CYW20829     (CAT1B)
 
 ## More Information
 
@@ -171,4 +195,4 @@ run the `make getlibs` command in the ModusToolbox™.
 - [How to Design with PSoC™ 6 MCU - KBA223067](https://community.infineon.com/t5/Knowledge-Base-Articles/How-to-Design-with-PSoC-6-MCU-KBA223067/ta-p/248857)
 
 ---
-© 2021-2023 Cypress Semiconductor Corporation, an Infineon Technologies Company.
+© 2021-2024 Cypress Semiconductor Corporation, an Infineon Technologies Company.

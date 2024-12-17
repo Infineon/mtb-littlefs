@@ -9,7 +9,7 @@
  *
  *******************************************************************************
  * \copyright
- * (c) (2021-2023), Cypress Semiconductor Corporation (an Infineon company) or
+ * (c) (2021-2024), Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -49,14 +49,33 @@
 #include "lfs_util.h"
 #include "cyhal_gpio.h"
 #include "cy_serial_flash_qspi.h"
+#if defined (COMPONENT_CAT1A)
 #include "lfs_qspi_memslot.h"
+#elif defined (COMPONENT_CAT1B)
+#include "cycfg_qspi_memslot.h"
+#endif /* #if defined (COMPONENT_CAT1A) */
 #include "cycfg_pins.h"
 
 #if defined(COMPONENT_RTOS_AWARE) || defined(LFS_THREADSAFE)
 #include "cyabs_rtos.h"
 #endif /* #if defined(COMPONENT_RTOS_AWARE) || defined(LFS_THREADSAFE) */
 
+/* Define if the asynchronous transfer is enabled */
+#if defined(COMPONENT_RTOS_AWARE) && !defined(ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH) && !(defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U))
+#define ASYNC_TRANSFER_IS_ENABLED               (1U)
+#else
+#define ASYNC_TRANSFER_IS_ENABLED               (0U)
+#endif /* #if defined(COMPONENT_RTOS_AWARE) && !defined(ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH) */
+
 #ifdef CY_IP_MXSMIF
+
+#if defined(LFS_THREADSAFE) /* This block of code ignores violations of Directive 4.6 MISRA. Functions lfs_spi_flash_bd_unlock and lfs_spi_flash_bd_lock don't reproduce violations if LFS_THREADSAFE not defined. */
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Directive 4.6',6,\
+'The third-party defines the function interface with basic numeral type')
+#else
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Directive 4.6',4,\
+'The third-party defines the function interface with basic numeral type')
+#endif /* #if defined(LFS_THREADSAFE) */
 
 #if defined(__cplusplus)
 extern "C"
@@ -74,7 +93,7 @@ extern "C"
 #define LFS_CFG_DEFAULT_BLOCK_CYCLES                (512)
 #define LFS_CFG_LOOKAHEAD_SIZE_MIN                  (64UL) /* Must be a multiple of 8. */
 
-#if defined(COMPONENT_RTOS_AWARE)
+#if (ASYNC_TRANSFER_IS_ENABLED) == 1U
 #define QSPI_READ_SEMA_MAX_COUNT                    (1UL)
 #define QSPI_READ_SEMA_INIT_COUNT                   (0UL)
 
@@ -94,7 +113,7 @@ void qspi_read_complete_callback(cy_rslt_t status, void *arg)
     LFS_ASSERT(CY_RSLT_SUCCESS == result);
     CY_UNUSED_PARAMETER(result); /* To avoid compiler warning in Release mode. */
 }
-#endif /* #if defined(COMPONENT_RTOS_AWARE) */
+#endif /* #if (ASYNC_TRANSFER_IS_ENABLED) == 1U */
 
 #if defined(LFS_THREADSAFE)
 
@@ -105,12 +124,22 @@ void qspi_read_complete_callback(cy_rslt_t status, void *arg)
 static cy_mutex_t _spi_flash_bd_mutex;
 #endif /* #if defined(LFS_THREADSAFE) */
 
+/* The static variable to safe the memory configuration */
+static uint32_t lfs_spi_flash_address_start = 0U;
+static uint32_t lfs_spi_flash_region_size = 0U;
+static bool lfs_spi_flash_en_custom_config = false;
+
+
 void lfs_spi_flash_bd_get_default_config(lfs_spi_flash_bd_config_t *bd_cfg)
 {
     LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_get_default_config(%p)", (void*)bd_cfg);
     LFS_ASSERT(NULL != bd_cfg);
 
+#if defined (COMPONENT_CAT1A)
     bd_cfg->mem_config = &LFS_SFDP_SlaveSlot_0;
+#elif defined (COMPONENT_CAT1B)
+    bd_cfg->mem_config = smifMemConfigs[0U];
+#endif /* #if defined (COMPONENT_CAT1A) */
 
     bd_cfg->io0 = NC;
     bd_cfg->io1 = NC;
@@ -151,6 +180,17 @@ void lfs_spi_flash_bd_get_default_config(lfs_spi_flash_bd_config_t *bd_cfg)
     LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_get_default_config -> %d", 0);
 }
 
+void lfs_spi_flash_bd_configure_memory(const struct lfs_config *lfs_cfg, uint32_t address, uint32_t region_size)
+{
+    CY_UNUSED_PARAMETER(lfs_cfg);
+    lfs_spi_flash_en_custom_config = true;
+
+    /* Save the address and region size to use during configuration
+     * in lfs_spi_flash_bd_create */
+    lfs_spi_flash_address_start = address;
+    lfs_spi_flash_region_size = region_size;
+}
+
 cy_rslt_t lfs_spi_flash_bd_create(struct lfs_config *lfs_cfg, const lfs_spi_flash_bd_config_t *bd_cfg)
 {
     LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_create(%p, %p)", (void*)lfs_cfg, (void*)bd_cfg);
@@ -158,12 +198,21 @@ cy_rslt_t lfs_spi_flash_bd_create(struct lfs_config *lfs_cfg, const lfs_spi_flas
     LFS_ASSERT(NULL != lfs_cfg);
     LFS_ASSERT(NULL != bd_cfg);
 
-    /* Initialize the custom Card Detect pin. */
+    /* Guard initialization of serial-memory by critical section, as it
+     * does not work stable for CAT1B device. See DRIVERS-20590.
+     */
+#if defined (COMPONENT_CAT1B)
+    uint32_t critical_section = cyhal_system_critical_section_enter();
+#endif /* #if defined (COMPONENT_CAT1B) */
+    /* Initialize the serial flash and reserve IP block for operation */
     cy_rslt_t result = cy_serial_flash_qspi_init(
                                 bd_cfg->mem_config,
                                 bd_cfg->io0, bd_cfg->io1, bd_cfg->io2, bd_cfg->io3,
                                 bd_cfg->io4, bd_cfg->io5, bd_cfg->io6, bd_cfg->io7,
                                 bd_cfg->sclk, bd_cfg->ssel, bd_cfg->freq_hz);
+#if defined (COMPONENT_CAT1B)
+    cyhal_system_critical_section_exit(critical_section);
+#endif /* #if defined (COMPONENT_CAT1B) */
 
 #if defined(LFS_THREADSAFE)
     if(CY_RSLT_SUCCESS == result)
@@ -186,11 +235,19 @@ cy_rslt_t lfs_spi_flash_bd_create(struct lfs_config *lfs_cfg, const lfs_spi_flas
         lfs_cfg->unlock      = lfs_spi_flash_bd_unlock;
 #endif /* #if defined(LFS_THREADSAFE) */
 
-        /* Block device configuration */
+        /* Block the device configuration.
+         * All the blocks of the flash module are expected to be the same size.
+         * As a result, we can find the program size and block size by the first
+         * block. Also, if the hybrid memory is used, these parameters are
+         * found for the first provided block (configured by lfs_spi_flash_bd_configure_memory()).
+         */
         lfs_cfg->read_size   = QSPI_MIN_READ_SIZE;
-        lfs_cfg->prog_size   = cy_serial_flash_qspi_get_prog_size(0);
-        lfs_cfg->block_size  = cy_serial_flash_qspi_get_erase_size(0);
-        lfs_cfg->block_count = cy_serial_flash_qspi_get_size() / lfs_cfg->block_size;
+        lfs_cfg->prog_size   = cy_serial_flash_qspi_get_prog_size(lfs_spi_flash_en_custom_config ?
+                                                                  lfs_spi_flash_address_start : 0U);
+        lfs_cfg->block_size  = cy_serial_flash_qspi_get_erase_size(lfs_spi_flash_en_custom_config ?
+                                                                   lfs_spi_flash_address_start : 0U);
+        lfs_cfg->block_count = (lfs_spi_flash_en_custom_config ? lfs_spi_flash_region_size :
+                                cy_serial_flash_qspi_get_size()) / lfs_cfg->block_size;
 
         /* Refer to lfs.h for the description of the following parameters. */
 
@@ -221,9 +278,9 @@ cy_rslt_t lfs_spi_flash_bd_create(struct lfs_config *lfs_cfg, const lfs_spi_flas
          */
         lfs_cfg->lookahead_size = lfs_min((lfs_size_t) LFS_CFG_LOOKAHEAD_SIZE_MIN, 8UL * ((lfs_cfg->block_count + 63UL)/64UL) );
 
-#if defined(COMPONENT_RTOS_AWARE)
+#if (ASYNC_TRANSFER_IS_ENABLED) == 1U
         result = cy_rtos_init_semaphore(&qspi_read_sema, QSPI_READ_SEMA_MAX_COUNT, QSPI_READ_SEMA_INIT_COUNT);
-#endif /* #if defined(COMPONENT_RTOS_AWARE) */
+#endif /* #if (ASYNC_TRANSFER_IS_ENABLED) == 1U */
     }
 
     LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_create -> %"PRIu32"", result);
@@ -239,10 +296,13 @@ void lfs_spi_flash_bd_destroy(const struct lfs_config *lfs_cfg)
     CY_UNUSED_PARAMETER(lfs_cfg);
     cy_serial_flash_qspi_deinit();
 
-#if defined(COMPONENT_RTOS_AWARE)
+    /* Forget the settings of the custom configuration of the memory module */
+    lfs_spi_flash_en_custom_config = false;
+
+#if (ASYNC_TRANSFER_IS_ENABLED) == 1U
     result = cy_rtos_deinit_semaphore(&qspi_read_sema);
     LFS_ASSERT(CY_RSLT_SUCCESS == result);
-#endif /* #if defined(COMPONENT_RTOS_AWARE) */
+#endif /* #if (ASYNC_TRANSFER_IS_ENABLED) == 1U */
 
 #if defined(LFS_THREADSAFE)
     result = cy_rtos_deinit_mutex(&_spi_flash_bd_mutex);
@@ -269,14 +329,14 @@ int lfs_spi_flash_bd_read(const struct lfs_config *lfs_cfg, lfs_block_t block,
     LFS_ASSERT(NULL != buffer);
     LFS_ASSERT((size % lfs_cfg->read_size) == 0);
 
-#if defined(COMPONENT_RTOS_AWARE)
+#if (ASYNC_TRANSFER_IS_ENABLED) == 1U
     cy_rslt_t qspi_read_status = CY_RSLT_SUCCESS;
 
     /* Disable interrupts to ensure interrupt occurs only when we are ready to
      * get the semaphore.
      */
     uint32_t saved_intr_status = cyhal_system_critical_section_enter();
-    result = cy_serial_flash_qspi_read_async((block * lfs_cfg->block_size) + off, size, buffer, qspi_read_complete_callback, (void *)&qspi_read_status);
+    result = cy_serial_flash_qspi_read_async(lfs_spi_flash_address_start + (block * lfs_cfg->block_size) + off, size, buffer, qspi_read_complete_callback, (void *)&qspi_read_status);
     cyhal_system_critical_section_exit(saved_intr_status);
 
     if(CY_RSLT_SUCCESS == result)
@@ -290,12 +350,13 @@ int lfs_spi_flash_bd_read(const struct lfs_config *lfs_cfg, lfs_block_t block,
         }
     }
 #else
-    result = cy_serial_flash_qspi_read((block * lfs_cfg->block_size) + off, size, buffer);
-#endif /* #if defined(COMPONENT_RTOS_AWARE) */
+    CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the function interface');
+    result = cy_serial_flash_qspi_read(lfs_spi_flash_address_start + (block * lfs_cfg->block_size) + off, size, buffer);
+#endif /* #if (ASYNC_TRANSFER_IS_ENABLED) == 1U */
 
-    int res = GET_INT_RETURN_VALUE(result);
+    int32_t res = GET_INT_RETURN_VALUE(result);
 
-    LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_read -> %d", res);
+    LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_read -> %d", (int)res);
     return res;
 }
 
@@ -312,11 +373,12 @@ int lfs_spi_flash_bd_prog(const struct lfs_config *lfs_cfg, lfs_block_t block,
     LFS_ASSERT(off  % lfs_cfg->prog_size == 0);
     LFS_ASSERT(NULL != buffer);
     LFS_ASSERT(size % lfs_cfg->prog_size == 0);
+    
+    CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the function interface');
+    cy_rslt_t result = cy_serial_flash_qspi_write(lfs_spi_flash_address_start + (block * lfs_cfg->block_size) + off, size, buffer);
+    int32_t res = GET_INT_RETURN_VALUE(result);
 
-    cy_rslt_t result = cy_serial_flash_qspi_write((block * lfs_cfg->block_size) + off, size, buffer);
-    int res = GET_INT_RETURN_VALUE(result);
-
-    LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_prg -> %d", res);
+    LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_prg -> %d", (int)res);
     return res;
 }
 
@@ -329,16 +391,17 @@ int lfs_spi_flash_bd_erase(const struct lfs_config *lfs_cfg, lfs_block_t block)
     LFS_ASSERT(block < lfs_cfg->block_count);
 
     uint32_t addr = block * lfs_cfg->block_size;
-    cy_rslt_t result = cy_serial_flash_qspi_erase(addr, lfs_cfg->block_size);
-    int res = GET_INT_RETURN_VALUE(result);
+    cy_rslt_t result = cy_serial_flash_qspi_erase(lfs_spi_flash_address_start + addr, lfs_cfg->block_size);
+    int32_t res = GET_INT_RETURN_VALUE(result);
 
-    LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_erase -> %d", res);
+    LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_erase -> %d", (int)res);
     return res;
 }
 
 /* Simply return zero because the QSPI block does not have any write cache in MMIO
  * mode.
  */
+
 int lfs_spi_flash_bd_sync(const struct lfs_config *lfs_cfg)
 {
     CY_UNUSED_PARAMETER(lfs_cfg);
@@ -349,6 +412,7 @@ int lfs_spi_flash_bd_sync(const struct lfs_config *lfs_cfg)
 }
 
 #if defined(LFS_THREADSAFE)
+
 int lfs_spi_flash_bd_lock(const struct lfs_config *lfs_cfg)
 {
     CY_UNUSED_PARAMETER(lfs_cfg);
@@ -366,5 +430,7 @@ int lfs_spi_flash_bd_unlock(const struct lfs_config *lfs_cfg)
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
+
+CY_MISRA_BLOCK_END('MISRA C-2012 Directive 4.6')
 
 #endif // CY_IP_MXSMIF

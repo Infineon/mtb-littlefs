@@ -7,7 +7,7 @@
 * QSPI Configurator 4.0.0.985
 *
 ********************************************************************************
-* Copyright 2022-2023 Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2022-2024 Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *

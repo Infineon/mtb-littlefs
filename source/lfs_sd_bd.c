@@ -8,7 +8,7 @@
  *
  *******************************************************************************
  * \copyright
- * (c) (2021-2023), Cypress Semiconductor Corporation (an Infineon company) or
+ * (c) (2021-2024), Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -48,13 +48,22 @@
 #include "lfs_util.h"
 #include "cyhal_gpio.h"
 #include "cyhal_sdhc.h"
+
+#ifdef CY_IP_MXSDHC
+
 #include "cycfg_pins.h"
 
 #if defined(LFS_THREADSAFE)
 #include "cyabs_rtos.h"
 #endif /* #if defined(LFS_THREADSAFE) */
 
-#ifdef CY_IP_MXSDHC
+#if defined(LFS_THREADSAFE) /* This block of code ignores violations of Directive 4.6 MISRA. Functions lfs_spi_flash_bd_unlock and lfs_spi_flash_bd_lock don't reproduce violations if LFS_THREADSAFE not defined. */
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Directive 4.6',7,\
+'The third-party defines the function interface with basic numeral type')
+#else
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Directive 4.6',5,\
+'The third-party defines the function interface with basic numeral type')
+#endif /* #if defined(LFS_THREADSAFE) */
 
 #if defined(__cplusplus)
 extern "C"
@@ -233,6 +242,7 @@ void lfs_sd_bd_destroy(const struct lfs_config *lfs_cfg)
 
     LFS_ASSERT(NULL != lfs_cfg);
 
+    CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the typr of "context"');
     lfs_sd_bd_config_t *bd_cfg = (lfs_sd_bd_config_t *)(lfs_cfg->context);
     cyhal_sdhc_free(&bd_cfg->sdhc_obj);
 
@@ -261,9 +271,11 @@ int lfs_sd_bd_read(const struct lfs_config *lfs_cfg, lfs_block_t block,
 
     size_t block_count =  size / lfs_cfg->block_size;
     uint32_t addr = block + (off / lfs_cfg->block_size);
+    CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the typr of "context"');
     lfs_sd_bd_config_t *bd_cfg = (lfs_sd_bd_config_t *)(lfs_cfg->context);
 
     /* addr represents the block number at which read should begin */
+    CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the function interface');
     cy_rslt_t result = cyhal_sdhc_read_async(&bd_cfg->sdhc_obj, addr, buffer, &block_count);
 
     if(CY_RSLT_SUCCESS == result)
@@ -272,9 +284,9 @@ int lfs_sd_bd_read(const struct lfs_config *lfs_cfg, lfs_block_t block,
         result = cyhal_sdhc_wait_transfer_complete(&bd_cfg->sdhc_obj);
     }
 
-    int res = GET_INT_RETURN_VALUE(result);
+    int32_t res = GET_INT_RETURN_VALUE(result);
 
-    LFS_SD_BD_TRACE("lfs_sd_bd_read -> %d", res);
+    LFS_SD_BD_TRACE("lfs_sd_bd_read -> %d", (int)res);
     return res;
 }
 
@@ -294,9 +306,11 @@ int lfs_sd_bd_prog(const struct lfs_config *lfs_cfg, lfs_block_t block,
 
     size_t block_count =  size / lfs_cfg->block_size;
     uint32_t addr = block + (off / lfs_cfg->block_size);
+    CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the typr of "context"');
     lfs_sd_bd_config_t *bd_cfg = (lfs_sd_bd_config_t *)(lfs_cfg->context);
 
     /* addr represents the block number at which write should begin */
+    CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the function interface');
     cy_rslt_t result = cyhal_sdhc_write_async(&bd_cfg->sdhc_obj, addr, buffer, &block_count);
 
     if(CY_RSLT_SUCCESS == result)
@@ -305,9 +319,9 @@ int lfs_sd_bd_prog(const struct lfs_config *lfs_cfg, lfs_block_t block,
         result = cyhal_sdhc_wait_transfer_complete(&bd_cfg->sdhc_obj);
     }
 
-    int res = GET_INT_RETURN_VALUE(result);
+    int32_t res = GET_INT_RETURN_VALUE(result);
 
-    LFS_SD_BD_TRACE("lfs_sd_bd_prg -> %d", res);
+    LFS_SD_BD_TRACE("lfs_sd_bd_prg -> %d", (int)res);
     return res;
 }
 
@@ -315,6 +329,7 @@ int lfs_sd_bd_prog(const struct lfs_config *lfs_cfg, lfs_block_t block,
  * erase internally during the write. Therefore, this function simply returns
  * zero and is used with the erase() of lfs_config structure.
  */
+
 static int _erase(const struct lfs_config *lfs_cfg, lfs_block_t block)
 {
     LFS_SD_BD_TRACE("lfs_sd_bd_erase(%p, 0x%"PRIx32")", (void*)lfs_cfg, block);
@@ -334,16 +349,18 @@ int lfs_sd_bd_erase(const struct lfs_config *lfs_cfg, lfs_block_t block)
     LFS_ASSERT(NULL != lfs_cfg);
     LFS_ASSERT(block < lfs_cfg->block_count);
 
+    CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the typr of "context"');
     lfs_sd_bd_config_t *bd_cfg = (lfs_sd_bd_config_t *)(lfs_cfg->context);
 
     cy_rslt_t result = cyhal_sdhc_erase(&bd_cfg->sdhc_obj, block, ONE_BLOCK, 0U);
-    int res = GET_INT_RETURN_VALUE(result);
+    int32_t res = GET_INT_RETURN_VALUE(result);
 
-    LFS_SD_BD_TRACE("lfs_sd_bd_erase -> %d", res);
+    LFS_SD_BD_TRACE("lfs_sd_bd_erase -> %d", (int)res);
     return res;
 }
 
 /* Simply return zero because the SDHC block does not have any write cache. */
+
 int lfs_sd_bd_sync(const struct lfs_config *lfs_cfg)
 {
     CY_UNUSED_PARAMETER(lfs_cfg);
@@ -354,6 +371,7 @@ int lfs_sd_bd_sync(const struct lfs_config *lfs_cfg)
 }
 
 #if defined(LFS_THREADSAFE)
+
 int lfs_sd_bd_lock(const struct lfs_config *lfs_cfg)
 {
     CY_UNUSED_PARAMETER(lfs_cfg);
@@ -371,5 +389,7 @@ int lfs_sd_bd_unlock(const struct lfs_config *lfs_cfg)
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
+
+CY_MISRA_BLOCK_END('MISRA C-2012 Directive 4.6')
 
 #endif /* CY_IP_MXSDHC */

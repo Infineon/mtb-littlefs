@@ -8,7 +8,7 @@
  *
  *******************************************************************************
  * \copyright
- * (c) (2021-2023), Cypress Semiconductor Corporation (an Infineon company) or
+ * (c) (2021-2024), Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -66,7 +66,8 @@
  * interrupt.
  */
 
-#pragma once
+#ifndef LFS_SD_BD_H            /* Guard against multiple inclusion */
+#define LFS_SD_BD_H 
 
 #include "lfs.h"
 #include "lfs_util.h"
@@ -76,6 +77,24 @@
 #include <stdbool.h>
 
 #ifdef CY_IP_MXSDHC
+
+/**
+ * \cond DO_NOT_DOCUMENT
+ * This block of code ignores violations of Directive 4.6 MISRA.
+ * Functions lfs_spi_flash_bd_unlock and lfs_spi_flash_bd_lock don't reproduce violations if LFS_THREADSAFE not defined.
+ */
+
+#if defined(LFS_THREADSAFE)
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Directive 4.6',6,\
+'The third-party defines the function interface with basic numeral type')
+#else
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Directive 4.6',4,\
+'The third-party defines the function interface with basic numeral type')
+#endif /* #if defined(LFS_THREADSAFE) */
+
+/**
+ *\endcond
+ */
 
 #if defined(__cplusplus)
 extern "C"
@@ -221,5 +240,9 @@ int lfs_sd_bd_unlock(const struct lfs_config *lfs_cfg);
 #endif
 
 #endif /* CY_IP_MXSDHC */
+
+CY_MISRA_BLOCK_END('MISRA C-2012 Directive 4.6')
+
+#endif                      /* Avoid multiple inclusion */
 
 /** \} group_lfs_sd_bd */

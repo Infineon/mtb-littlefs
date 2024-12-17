@@ -7,7 +7,7 @@
 * QSPI Configurator 4.0.0.985
 *
 ********************************************************************************
-* Copyright 2022-2023 Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2022-2024 Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -478,7 +478,7 @@ cy_stc_smif_mem_config_t LFS_SFDP_SlaveSlot_0 =
     Valid when the memory mapped mode is enabled. */
     .dualQuadSlots = 0,
     /* The configuration of the device. */
-    .deviceCfg = &LFS_DeviceCfg_SFDP_SlaveSlot_0
+    .deviceCfg = &LFS_DeviceCfg_SFDP_SlaveSlot_0,
 #if (CY_IP_MXSMIF_VERSION >= 2)
     /** Continuous transfer merge timeout.
      * After this period the memory device is deselected. A later transfer, even from a

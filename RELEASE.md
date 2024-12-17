@@ -1,4 +1,4 @@
-# Block Device Drivers for littlefs v2.0.1
+# Block Device Drivers for littlefs v2.1.0
 
 ## What's Included?
 
@@ -7,7 +7,7 @@ For details, refer to [README.md](./README.md) and the
 
 New in the release:
 
-* Minor changes in documentation
+* Adding support of AIROC™ CYW20829 (CAT1B) device
 
 ## Known issues and limitations
 
@@ -23,17 +23,22 @@ mutex instance. This means that while trying to perform an operation, a thread
 will be blocked until another thread completes that operation,
 whichever SDHC hardware instance the thread is accessing.
 
+* The SD block device driver is not supported on CM55 core for PSoC™ Edge E84 MCUs. This will be addressed in a future release.
+
 ## Supported software and tools
 
 This version was validated for compatibility with the following software and tools:
 
 | Software and Tools                        | Version |
 | :---------------------------------------- | :------ |
-| ModusToolbox™ Software Environment        | 3.0     |
-| GCC Compiler                              | 10.3.1  |
-| IAR Compiler                              | 9.30.1  |
-| Arm® Compiler 6                           | 6.16    |
+| ModusToolbox™ Software Environment        | 3.3     |
+| mtb-hal-cat1                              | 2.6.1   |
+| serial-flash                              | 1.4.2   |
+| abstraction-rtos                          | 1.9.0   |
 | Littlefs                                  | 2.4.0   |
+| GCC Compiler                              | 11.3.1  |
+| IAR Compiler                              | 9.50.2  |
+| Arm® Compiler 6                           | 6.22    |
 
 Minimum required ModusToolbox™ Software Environment: ModusToolbox™ v3.0 and
 HAL Cat1 2.0
@@ -51,4 +56,4 @@ HAL Cat1 2.0
 * [How to Design with PSoC™ 6 MCU - KBA223067](https://community.infineon.com/t5/Knowledge-Base-Articles/How-to-Design-with-PSoC-6-MCU-KBA223067/ta-p/248857)
 
 ---
-© 2021-2023 Cypress Semiconductor Corporation, an Infineon Technologies Company.
+© 2021-2024 Cypress Semiconductor Corporation, an Infineon Technologies Company.

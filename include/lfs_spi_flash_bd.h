@@ -9,7 +9,7 @@
  *
  *******************************************************************************
  * \copyright
- * (c) (2021-2023), Cypress Semiconductor Corporation (an Infineon company) or
+ * (c) (2021-2024), Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -53,17 +53,32 @@
  * * Makes use of the <a href="https://github.com/Infineon/serial-flash">serial-flash</a>
  * library.
  * * Uses the SFDP protocol to automatically discover the flash parameters.
- * * Provides \ref lfs_sd_bd_lock() and \ref lfs_sd_bd_unlock() functions for
- * use with lfs_config structure when LFS_THREADSAFE macro is defined.
+ * * Provides \ref lfs_spi_flash_bd_lock() and \ref lfs_spi_flash_bd_unlock()
+ * functions for use with lfs_config structure when LFS_THREADSAFE macro is
+ * defined.
  *
 * <b>Note:</b>
  * * Add DEFINE=LFS_THREADSAFE in the Makefile when thread-safety is required.
  * * Add COMPONENTS=RTOS_AWARE for enabling the RTOS-friendly features such as
  * waiting on a semaphore until the read completion is notified through a
  * callback by serial-flash.
+ * * XIP support in CAT1B devices:
+ * When the same memory is used for code execution (XIP) and storing data by
+ * Littlefs, macro ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH must be added to
+ * DEFINES variable in Makefile. When macro ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH
+ * is defined, the Littlefs does not use features of serial-flash not supported
+ * for this case, for example, asynchronous transfer. Also, the size of available
+ * for Littlefs memory must be restricted by the
+ * \ref lfs_spi_flash_bd_configure_memory function.
+ * \note Disabling of the asynchronous transfer can impact the performance of
+ * RTOS environment.
+ * * Littlefs can use the memory with blocks of the same size. For hybrid
+ * memory, it is compulsory to limit the size available for littlefs by the
+ * \ref lfs_spi_flash_bd_configure_memory function to use only same-size blocks.
  */
 
-#pragma once
+#ifndef LFS_SPI_FLASH_BD_H            /* Guard against multiple inclusion */
+#define LFS_SPI_FLASH_BD_H
 
 #include "lfs.h"
 #include "lfs_util.h"
@@ -72,6 +87,24 @@
 #include "cy_smif_memslot.h"
 
 #ifdef CY_IP_MXSMIF
+
+/**
+ * \cond DO_NOT_DOCUMENT
+ * This block of code ignores violations of Directive 4.6 MISRA.
+ * Functions lfs_spi_flash_bd_unlock and lfs_spi_flash_bd_lock don't reproduce violations if LFS_THREADSAFE not defined.
+ */
+
+#if defined(LFS_THREADSAFE)
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Directive 4.6',6,\
+'The third-party defines the function interface with basic numeral type')
+#else
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Directive 4.6',4,\
+'The third-party defines the function interface with basic numeral type')
+#endif /* #if defined(LFS_THREADSAFE) */
+
+/**
+ *\endcond
+ */
 
 #if defined(__cplusplus)
 extern "C"
@@ -113,10 +146,22 @@ typedef struct
 /**
  * \brief Fetches the default configuration for the block device for use with
  * the \ref lfs_spi_flash_bd_create() function.
- * Default configuration: SFDP enabled, QSPI (IO0 to Io3) mode, 50 MHz clock.
+ * Default configuration: SFDP enabled, QSPI (IO0 to IO3) mode, 50 MHz clock.
  * \param bd_cfg Pointer to the block device configuration structure.
  */
 void lfs_spi_flash_bd_get_default_config(lfs_spi_flash_bd_config_t *bd_cfg);
+
+/**
+ * \brief Configures the memory region used by littlefs. If this function
+ * is not called, the littlefs will use the whole size of the memory module.
+ * The function must be called before lfs_spi_flash_bd_create(). After
+ * de-initialization of littlefs, the settings configured by this function
+ * are lost.
+ * \param lfs_cfg The pointer to the block device configuration structure
+ * \param address The start of a memory region available for littlefs.
+ * \param region_size The size of a memory region available for littlefs.
+ */
+void lfs_spi_flash_bd_configure_memory(const struct lfs_config *lfs_cfg, uint32_t address, uint32_t region_size);
 
 /**
  * \brief Initializes the SPI flash and populates the lfs_config structure with
@@ -202,13 +247,17 @@ int lfs_spi_flash_bd_lock(const struct lfs_config *lfs_cfg);
  * \returns 0 if unlocking was successful; -1 otherwise.
  */
 int lfs_spi_flash_bd_unlock(const struct lfs_config *lfs_cfg);
-#endif /* #if defined(LFS_THREADSAFE) */
 
+#endif /* #if defined(LFS_THREADSAFE) */
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif // CY_IP_MXSMIF
+#endif /* CY_IP_MXSMIF */
+
+CY_MISRA_BLOCK_END('MISRA C-2012 Directive 4.6')
+
+#endif                      /* Avoid multiple inclusion */
 
 /** \} group_lfs_spi_flash_bd */

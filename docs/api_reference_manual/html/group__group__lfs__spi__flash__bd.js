@@ -16,6 +16,7 @@ var group__group__lfs__spi__flash__bd =
     ] ],
     [ "LFS_SPI_FLASH_BD_TRACE", "group__group__lfs__spi__flash__bd.html#gaeeca3756b74ba014a43339556b40453e", null ],
     [ "lfs_spi_flash_bd_get_default_config", "group__group__lfs__spi__flash__bd.html#gadc512a6ca48b34ab5f124a8d4a097595", null ],
+    [ "lfs_spi_flash_bd_configure_memory", "group__group__lfs__spi__flash__bd.html#gad606397bae4b654cba612321c33d460a", null ],
     [ "lfs_spi_flash_bd_create", "group__group__lfs__spi__flash__bd.html#ga2757e78734174021644b85d7e2f6b708", null ],
     [ "lfs_spi_flash_bd_destroy", "group__group__lfs__spi__flash__bd.html#gafcfe68f0485727b03ea984f279a4ae6b", null ],
     [ "lfs_spi_flash_bd_read", "group__group__lfs__spi__flash__bd.html#ga3c52c1fb5c2a1fea1d80c8e7fe7e384d", null ],
