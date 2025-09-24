@@ -9,7 +9,7 @@
  *
  *******************************************************************************
  * \copyright
- * (c) (2021-2024), Cypress Semiconductor Corporation (an Infineon company) or
+ * (c) (2021-2025), Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -47,25 +47,14 @@
 
 #include "lfs_spi_flash_bd.h"
 #include "lfs_util.h"
-#include "cyhal_gpio.h"
-#include "cy_serial_flash_qspi.h"
-#if defined (COMPONENT_CAT1A)
-#include "lfs_qspi_memslot.h"
-#elif defined (COMPONENT_CAT1B)
-#include "cycfg_qspi_memslot.h"
-#endif /* #if defined (COMPONENT_CAT1A) */
-#include "cycfg_pins.h"
+#include "mtb_serial_memory.h"
 
 #if defined(COMPONENT_RTOS_AWARE) || defined(LFS_THREADSAFE)
 #include "cyabs_rtos.h"
 #endif /* #if defined(COMPONENT_RTOS_AWARE) || defined(LFS_THREADSAFE) */
 
 /* Define if the asynchronous transfer is enabled */
-#if defined(COMPONENT_RTOS_AWARE) && !defined(ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH) && !(defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U))
-#define ASYNC_TRANSFER_IS_ENABLED               (1U)
-#else
-#define ASYNC_TRANSFER_IS_ENABLED               (0U)
-#endif /* #if defined(COMPONENT_RTOS_AWARE) && !defined(ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH) */
+#define ASYNC_TRANSFER_IS_ENABLED               (0U) /* Serial memory doesn't support asynchronous transfer. Must be 0 */
 
 #ifdef CY_IP_MXSMIF
 
@@ -101,6 +90,8 @@ extern "C"
 #define LFS_SPI_FLASH_BD_ASYNC_READ_TIMEOUT_MS      (500UL) /* in milliseconds */
 #endif /* #ifndef LFS_SPI_FLASH_BD_ASYNC_READ_TIMEOUT_MS */
 
+void qspi_read_complete_callback(cy_rslt_t status, void *arg);
+
 /* Semaphore used while waiting for the QSPI read operation to complete. */
 static cy_semaphore_t qspi_read_sema;
 
@@ -108,6 +99,7 @@ void qspi_read_complete_callback(cy_rslt_t status, void *arg)
 {
     cy_rslt_t result;
 
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5', 'The void* pointer arg is cast to cy_rslt_t* to store the callback status. It is guaranteed that arg points to a memory location of type cy_rslt_t.');
     *((cy_rslt_t *) arg) = status;
     result = cy_rtos_set_semaphore(&qspi_read_sema, true);
     LFS_ASSERT(CY_RSLT_SUCCESS == result);
@@ -130,56 +122,6 @@ static uint32_t lfs_spi_flash_region_size = 0U;
 static bool lfs_spi_flash_en_custom_config = false;
 
 
-void lfs_spi_flash_bd_get_default_config(lfs_spi_flash_bd_config_t *bd_cfg)
-{
-    LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_get_default_config(%p)", (void*)bd_cfg);
-    LFS_ASSERT(NULL != bd_cfg);
-
-#if defined (COMPONENT_CAT1A)
-    bd_cfg->mem_config = &LFS_SFDP_SlaveSlot_0;
-#elif defined (COMPONENT_CAT1B)
-    bd_cfg->mem_config = smifMemConfigs[0U];
-#endif /* #if defined (COMPONENT_CAT1A) */
-
-    bd_cfg->io0 = NC;
-    bd_cfg->io1 = NC;
-    bd_cfg->io2 = NC;
-    bd_cfg->io3 = NC;
-    bd_cfg->io4 = NC;
-    bd_cfg->io5 = NC;
-    bd_cfg->io6 = NC;
-    bd_cfg->io7 = NC;
-    bd_cfg->sclk = NC;
-    bd_cfg->ssel = NC;
-    bd_cfg->freq_hz = DEFAULT_QSPI_FREQUENCY_HZ;
-
-#ifdef CYBSP_QSPI_D0
-    bd_cfg->io0 = CYBSP_QSPI_D0;
-#endif
-
-#ifdef CYBSP_QSPI_D1
-    bd_cfg->io1 = CYBSP_QSPI_D1;
-#endif
-
-#ifdef CYBSP_QSPI_D2
-    bd_cfg->io2 = CYBSP_QSPI_D2;
-#endif
-
-#ifdef CYBSP_QSPI_D3
-    bd_cfg->io3 = CYBSP_QSPI_D3;
-#endif
-
-#ifdef CYBSP_QSPI_SCK
-    bd_cfg->sclk = CYBSP_QSPI_SCK;
-#endif
-
-#ifdef CYBSP_QSPI_SS
-    bd_cfg->ssel = CYBSP_QSPI_SS;
-#endif
-
-    LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_get_default_config -> %d", 0);
-}
-
 void lfs_spi_flash_bd_configure_memory(const struct lfs_config *lfs_cfg, uint32_t address, uint32_t region_size)
 {
     CY_UNUSED_PARAMETER(lfs_cfg);
@@ -191,28 +133,20 @@ void lfs_spi_flash_bd_configure_memory(const struct lfs_config *lfs_cfg, uint32_
     lfs_spi_flash_region_size = region_size;
 }
 
-cy_rslt_t lfs_spi_flash_bd_create(struct lfs_config *lfs_cfg, const lfs_spi_flash_bd_config_t *bd_cfg)
+cy_rslt_t lfs_spi_flash_bd_create(struct lfs_config *lfs_cfg, mtb_serial_memory_t *serial_memory_obj)
 {
-    LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_create(%p, %p)", (void*)lfs_cfg, (void*)bd_cfg);
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
+    LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_create(%p, %p)", (void*)lfs_cfg, (void*)serial_memory_obj);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
 
     LFS_ASSERT(NULL != lfs_cfg);
-    LFS_ASSERT(NULL != bd_cfg);
+    LFS_ASSERT(NULL != serial_memory_obj);
 
-    /* Guard initialization of serial-memory by critical section, as it
-     * does not work stable for CAT1B device. See DRIVERS-20590.
-     */
-#if defined (COMPONENT_CAT1B)
-    uint32_t critical_section = cyhal_system_critical_section_enter();
-#endif /* #if defined (COMPONENT_CAT1B) */
-    /* Initialize the serial flash and reserve IP block for operation */
-    cy_rslt_t result = cy_serial_flash_qspi_init(
-                                bd_cfg->mem_config,
-                                bd_cfg->io0, bd_cfg->io1, bd_cfg->io2, bd_cfg->io3,
-                                bd_cfg->io4, bd_cfg->io5, bd_cfg->io6, bd_cfg->io7,
-                                bd_cfg->sclk, bd_cfg->ssel, bd_cfg->freq_hz);
-#if defined (COMPONENT_CAT1B)
-    cyhal_system_critical_section_exit(critical_section);
-#endif /* #if defined (COMPONENT_CAT1B) */
+    cy_rslt_t result = CY_RSLT_SUCCESS;
+
+    lfs_cfg->context     = (mtb_serial_memory_t *)serial_memory_obj;
 
 #if defined(LFS_THREADSAFE)
     if(CY_RSLT_SUCCESS == result)
@@ -222,68 +156,70 @@ cy_rslt_t lfs_spi_flash_bd_create(struct lfs_config *lfs_cfg, const lfs_spi_flas
     }
 #endif /* #if defined(LFS_THREADSAFE) */
 
-    if(CY_RSLT_SUCCESS == result)
-    {
-        /* Block device operations */
-        lfs_cfg->read        = lfs_spi_flash_bd_read;
-        lfs_cfg->prog        = lfs_spi_flash_bd_prog;
-        lfs_cfg->erase       = lfs_spi_flash_bd_erase;
-        lfs_cfg->sync        = lfs_spi_flash_bd_sync;
+    /* Block device operations */
+    lfs_cfg->read        = lfs_spi_flash_bd_read;
+    lfs_cfg->prog        = lfs_spi_flash_bd_prog;
+    lfs_cfg->erase       = lfs_spi_flash_bd_erase;
+    lfs_cfg->sync        = lfs_spi_flash_bd_sync;
 
 #if defined(LFS_THREADSAFE)
-        lfs_cfg->lock        = lfs_spi_flash_bd_lock;
-        lfs_cfg->unlock      = lfs_spi_flash_bd_unlock;
+    lfs_cfg->lock        = lfs_spi_flash_bd_lock;
+    lfs_cfg->unlock      = lfs_spi_flash_bd_unlock;
 #endif /* #if defined(LFS_THREADSAFE) */
 
-        /* Block the device configuration.
-         * All the blocks of the flash module are expected to be the same size.
-         * As a result, we can find the program size and block size by the first
-         * block. Also, if the hybrid memory is used, these parameters are
-         * found for the first provided block (configured by lfs_spi_flash_bd_configure_memory()).
-         */
-        lfs_cfg->read_size   = QSPI_MIN_READ_SIZE;
-        lfs_cfg->prog_size   = cy_serial_flash_qspi_get_prog_size(lfs_spi_flash_en_custom_config ?
-                                                                  lfs_spi_flash_address_start : 0U);
-        lfs_cfg->block_size  = cy_serial_flash_qspi_get_erase_size(lfs_spi_flash_en_custom_config ?
-                                                                   lfs_spi_flash_address_start : 0U);
-        lfs_cfg->block_count = (lfs_spi_flash_en_custom_config ? lfs_spi_flash_region_size :
-                                cy_serial_flash_qspi_get_size()) / lfs_cfg->block_size;
+    /* Block the device configuration.
+        * All the blocks of the flash module are expected to be the same size.
+        * As a result, we can find the program size and block size by the first
+        * block. Also, if the hybrid memory is used, these parameters are
+        * found for the first provided block (configured by lfs_spi_flash_bd_configure_memory()).
+        */
+    lfs_cfg->read_size   = QSPI_MIN_READ_SIZE;
+    lfs_cfg->prog_size   = mtb_serial_memory_get_prog_size(serial_memory_obj, lfs_spi_flash_en_custom_config ?
+                                                                lfs_spi_flash_address_start : 0U);
+    lfs_cfg->block_size  = mtb_serial_memory_get_erase_size(serial_memory_obj, lfs_spi_flash_en_custom_config ?
+                                                                lfs_spi_flash_address_start : 0U);
+    lfs_cfg->block_count = (lfs_spi_flash_en_custom_config ? lfs_spi_flash_region_size :
+                            mtb_serial_memory_get_size(serial_memory_obj)) / lfs_cfg->block_size;
 
-        /* Refer to lfs.h for the description of the following parameters. */
+    /* Refer to lfs.h for the description of the following parameters: */
 
-        /* Number of erase cycles before the data is moved to a new block.
-         * A larger value results in more efficient filesystem performance, but
-         * causes less even-wear distribution.
-         *
-         * Setting this to -1 disables dynamic wear leveling.
-         */
-        lfs_cfg->block_cycles = LFS_CFG_DEFAULT_BLOCK_CYCLES;
+    /* The number of erase cycles before data is moved to a new block.
+        * A larger value results in more efficient filesystem performance, but
+        * causes less even-wear distribution.
+        *
+        * Setting this to -1 disables dynamic wear leveling.
+        */
+    lfs_cfg->block_cycles = LFS_CFG_DEFAULT_BLOCK_CYCLES;
 
-        /* cache_size must be a multiple of prog & read sizes.
-         * i.e., cache_size % prog_size = 0 and cache_size % read_size = 0
-         * block_size must be a multiple of cache_size. i.e., block_size % cache_size = 0.
-         *
-         * littlefs allocates 1 cache for each file and 2 caches for
-         * internal operations.
-         * The higher the cache size, the better the performance is, but the
-         * RAM consumption is also higher.
-         */
-        lfs_cfg->cache_size = lfs_cfg->prog_size;
+    /* cache_size must be a multiple of prog & read sizes.
+        * i.e., cache_size % prog_size = 0 and cache_size % read_size = 0
+        * block_size must be a multiple of cache_size. i.e., block_size % cache_size = 0.
+        *
+        * littlefs allocates 1 cache for each file and 2 caches for
+        * internal operations.
+        * The higher the cache size, the better the performance is, but the
+        * RAM consumption is also higher.
+        */
+    lfs_cfg->cache_size = lfs_cfg->prog_size;
 
-        /* A larger Lookahead size reduces the number of scans performed by
-         * the block allocation algorithm thus increasing the filesystem
-         * performance, but results in higher RAM consumption.
-         *
-         * Must be a multiple of 8.
-         */
-        lfs_cfg->lookahead_size = lfs_min((lfs_size_t) LFS_CFG_LOOKAHEAD_SIZE_MIN, 8UL * ((lfs_cfg->block_count + 63UL)/64UL) );
+    /* A larger Lookahead size reduces the number of scans performed by
+        * the block allocation algorithm thus increasing the filesystem
+        * performance, but results in higher RAM consumption.
+        *
+        * Must be a multiple of 8.
+        */
+    lfs_cfg->lookahead_size = lfs_min((lfs_size_t) LFS_CFG_LOOKAHEAD_SIZE_MIN, 8UL * ((lfs_cfg->block_count + 63UL)/64UL) );
 
 #if (ASYNC_TRANSFER_IS_ENABLED) == 1U
-        result = cy_rtos_init_semaphore(&qspi_read_sema, QSPI_READ_SEMA_MAX_COUNT, QSPI_READ_SEMA_INIT_COUNT);
+    result = cy_rtos_init_semaphore(&qspi_read_sema, QSPI_READ_SEMA_MAX_COUNT, QSPI_READ_SEMA_INIT_COUNT);
 #endif /* #if (ASYNC_TRANSFER_IS_ENABLED) == 1U */
-    }
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_create -> %"PRIu32"", result);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
+
     return result;
 }
 
@@ -291,10 +227,16 @@ void lfs_spi_flash_bd_destroy(const struct lfs_config *lfs_cfg)
 {
     cy_rslt_t result = CY_RSLT_SUCCESS;
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_destroy(%p)", (void*)lfs_cfg);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
 
     CY_UNUSED_PARAMETER(lfs_cfg);
-    cy_serial_flash_qspi_deinit();
+    /* For some reason, the 20829 requires the deinit function in XIP mode
+     * while the PSE84 device requires detach function
+     */
 
     /* Forget the settings of the custom configuration of the memory module */
     lfs_spi_flash_en_custom_config = false;
@@ -309,7 +251,11 @@ void lfs_spi_flash_bd_destroy(const struct lfs_config *lfs_cfg)
     LFS_ASSERT(CY_RSLT_SUCCESS == result);
 #endif /* #if defined(LFS_THREADSAFE) */
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_destroy -> %d", 0);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
     CY_UNUSED_PARAMETER(result); /* To avoid compiler warning in Release mode. */
 }
 
@@ -318,10 +264,13 @@ int lfs_spi_flash_bd_read(const struct lfs_config *lfs_cfg, lfs_block_t block,
 {
     cy_rslt_t result;
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_read(%p, "
                     "0x%"PRIx32", %"PRIu32", %p, %"PRIu32")",
                 (void*)lfs_cfg, block, off, buffer, size);
-
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
     /* Check if parameters are valid. */
     LFS_ASSERT(NULL != lfs_cfg);
     LFS_ASSERT(block < lfs_cfg->block_count);
@@ -329,15 +278,19 @@ int lfs_spi_flash_bd_read(const struct lfs_config *lfs_cfg, lfs_block_t block,
     LFS_ASSERT(NULL != buffer);
     LFS_ASSERT((size % lfs_cfg->read_size) == 0);
 
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5', 'The pointer lfs_cfg->context is cast to mtb_serial_memory_t*. It is guaranteed that lfs_cfg->context points to a valid mtb_serial_memory_t instance.');
+    mtb_serial_memory_t *serial_memory_obj = (mtb_serial_memory_t *)(lfs_cfg->context);
+
 #if (ASYNC_TRANSFER_IS_ENABLED) == 1U
     cy_rslt_t qspi_read_status = CY_RSLT_SUCCESS;
 
     /* Disable interrupts to ensure interrupt occurs only when we are ready to
      * get the semaphore.
      */
-    uint32_t saved_intr_status = cyhal_system_critical_section_enter();
-    result = cy_serial_flash_qspi_read_async(lfs_spi_flash_address_start + (block * lfs_cfg->block_size) + off, size, buffer, qspi_read_complete_callback, (void *)&qspi_read_status);
-    cyhal_system_critical_section_exit(saved_intr_status);
+    uint32_t saved_intr_status = mtb_hal_system_critical_section_enter();
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5', 'The void* pointer buffer is cast to uint8_t* for byte-level access. It is guaranteed that buffer points to a memory region containing uint8_t data.');
+    result = mtb_serial_memory_read_async(serial_memory_obj, lfs_spi_flash_address_start + (block * lfs_cfg->block_size) + off, size, (uint8_t*)buffer, qspi_read_complete_callback, (void *)&qspi_read_status);
+    mtb_hal_system_critical_section_exit(saved_intr_status);
 
     if(CY_RSLT_SUCCESS == result)
     {
@@ -351,21 +304,29 @@ int lfs_spi_flash_bd_read(const struct lfs_config *lfs_cfg, lfs_block_t block,
     }
 #else
     CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the function interface');
-    result = cy_serial_flash_qspi_read(lfs_spi_flash_address_start + (block * lfs_cfg->block_size) + off, size, buffer);
+    result = mtb_serial_memory_read(serial_memory_obj, lfs_spi_flash_address_start + (block * lfs_cfg->block_size) + off, size, buffer);
 #endif /* #if (ASYNC_TRANSFER_IS_ENABLED) == 1U */
 
     int32_t res = GET_INT_RETURN_VALUE(result);
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_read -> %d", (int)res);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
     return res;
 }
 
 int lfs_spi_flash_bd_prog(const struct lfs_config *lfs_cfg, lfs_block_t block,
         lfs_off_t off, const void *buffer, lfs_size_t size)
 {
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+     'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_prog(%p, "
                     "0x%"PRIx32", %"PRIu32", %p, %"PRIu32")",
                 (void*)lfs_cfg, block, off, buffer, size);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
 
     /* Check if parameters are valid. */
     LFS_ASSERT(NULL != lfs_cfg);
@@ -373,28 +334,48 @@ int lfs_spi_flash_bd_prog(const struct lfs_config *lfs_cfg, lfs_block_t block,
     LFS_ASSERT(off  % lfs_cfg->prog_size == 0);
     LFS_ASSERT(NULL != buffer);
     LFS_ASSERT(size % lfs_cfg->prog_size == 0);
-    
+
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5', 'The pointer lfs_cfg->context is cast to mtb_serial_memory_t*. It is guaranteed that lfs_cfg->context points to a valid mtb_serial_memory_t instance.');
+    mtb_serial_memory_t *serial_memory_obj = (mtb_serial_memory_t *)(lfs_cfg->context);
+
     CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the function interface');
-    cy_rslt_t result = cy_serial_flash_qspi_write(lfs_spi_flash_address_start + (block * lfs_cfg->block_size) + off, size, buffer);
+    cy_rslt_t result = mtb_serial_memory_write(serial_memory_obj, lfs_spi_flash_address_start + (block * lfs_cfg->block_size) + off, size, buffer);
     int32_t res = GET_INT_RETURN_VALUE(result);
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_prg -> %d", (int)res);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
+
     return res;
 }
 
 int lfs_spi_flash_bd_erase(const struct lfs_config *lfs_cfg, lfs_block_t block)
 {
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_erase(%p, 0x%"PRIx32")", (void*)lfs_cfg, block);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
 
     /* Check if parameters are valid. */
     LFS_ASSERT(NULL != lfs_cfg);
     LFS_ASSERT(block < lfs_cfg->block_count);
 
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5', 'The pointer lfs_cfg->context is cast to mtb_serial_memory_t*. It is guaranteed that lfs_cfg->context points to a valid mtb_serial_memory_t instance.');
+    mtb_serial_memory_t *serial_memory_obj = (mtb_serial_memory_t *)(lfs_cfg->context);
+
     uint32_t addr = block * lfs_cfg->block_size;
-    cy_rslt_t result = cy_serial_flash_qspi_erase(lfs_spi_flash_address_start + addr, lfs_cfg->block_size);
+    cy_rslt_t result = mtb_serial_memory_erase(serial_memory_obj, lfs_spi_flash_address_start + addr, lfs_cfg->block_size);
     int32_t res = GET_INT_RETURN_VALUE(result);
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_erase -> %d", (int)res);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
+
     return res;
 }
 
@@ -406,8 +387,15 @@ int lfs_spi_flash_bd_sync(const struct lfs_config *lfs_cfg)
 {
     CY_UNUSED_PARAMETER(lfs_cfg);
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',2,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 21.6',2,\
+    'Using the safe wrapper of printf')
     LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_sync(%p)", (void*)lfs_cfg);
     LFS_SPI_FLASH_BD_TRACE("lfs_spi_flash_bd_sync -> %d", 0);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 21.6')
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
+
     return 0;
 }
 

@@ -9,7 +9,7 @@
  *
  *******************************************************************************
  * \copyright
- * (c) (2021-2024), Cypress Semiconductor Corporation (an Infineon company) or
+ * (c) (2021-2025), Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -62,7 +62,7 @@
  * * Add COMPONENTS=RTOS_AWARE for enabling the RTOS-friendly features such as
  * waiting on a semaphore until the read completion is notified through a
  * callback by serial-flash.
- * * XIP support in CAT1B devices:
+ * * XIP support in CAT1B/CAT1D devices:
  * When the same memory is used for code execution (XIP) and storing data by
  * Littlefs, macro ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH must be added to
  * DEFINES variable in Makefile. When macro ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH
@@ -83,8 +83,8 @@
 #include "lfs.h"
 #include "lfs_util.h"
 #include "cy_result.h"
-#include "cyhal_gpio.h"
 #include "cy_smif_memslot.h"
+#include "mtb_serial_memory.h"
 
 #ifdef CY_IP_MXSMIF
 
@@ -121,35 +121,6 @@ extern "C"
 #define LFS_SPI_FLASH_BD_TRACE(...)
 #endif
 
-/**
- * Configuration structure for the SPI flash block device. The members of this
- * structure is passed to the cy_serial_flash_qspi_init() API. See the
- * <a href="https://infineon.github.io/serial-flash/html/index.html">serial-flash API reference manual</a>
- * for details.
- */
-typedef struct
-{
-    const cy_stc_smif_mem_config_t *mem_config; /**< Memory configuration structure that can be auto-generated using the QSPI Configurator tool */
-    cyhal_gpio_t io0; /**< Data/IO pin 0 connected to the memory; pass NC when unused.*/
-    cyhal_gpio_t io1; /**< Data/IO pin 1 connected to the memory; pass NC when unused.*/
-    cyhal_gpio_t io2; /**< Data/IO pin 2 connected to the memory; pass NC when unused.*/
-    cyhal_gpio_t io3; /**< Data/IO pin 3 connected to the memory; pass NC when unused.*/
-    cyhal_gpio_t io4; /**< Data/IO pin 4 connected to the memory; pass NC when unused.*/
-    cyhal_gpio_t io5; /**< Data/IO pin 5 connected to the memory; pass NC when unused.*/
-    cyhal_gpio_t io6; /**< Data/IO pin 6 connected to the memory; pass NC when unused.*/
-    cyhal_gpio_t io7; /**< Data/IO pin 7 connected to the memory; pass NC when unused.*/
-    cyhal_gpio_t sclk; /**< Clock pin connected to the memory. */
-    cyhal_gpio_t ssel; /**< Slave select pin connected to the memory. */
-    uint32_t freq_hz; /**< Clock frequency to be used with the memory. */
-} lfs_spi_flash_bd_config_t;
-
-/**
- * \brief Fetches the default configuration for the block device for use with
- * the \ref lfs_spi_flash_bd_create() function.
- * Default configuration: SFDP enabled, QSPI (IO0 to IO3) mode, 50 MHz clock.
- * \param bd_cfg Pointer to the block device configuration structure.
- */
-void lfs_spi_flash_bd_get_default_config(lfs_spi_flash_bd_config_t *bd_cfg);
 
 /**
  * \brief Configures the memory region used by littlefs. If this function
@@ -168,11 +139,11 @@ void lfs_spi_flash_bd_configure_memory(const struct lfs_config *lfs_cfg, uint32_
  * the default values.
  * \param lfs_cfg Pointer to the lfs_config structure that will be
           initialized with the default values.
- * \param bd_cfg Pointer to the block device configuration structure.
+ * \param serial_memory_obj Pointer to the serial memory object.
  * \returns CY_RSLT_SUCCESS if the initialization was successful; an error code
  *          otherwise.
  */
-cy_rslt_t lfs_spi_flash_bd_create(struct lfs_config *lfs_cfg, const lfs_spi_flash_bd_config_t *bd_cfg);
+cy_rslt_t lfs_spi_flash_bd_create(struct lfs_config *lfs_cfg, mtb_serial_memory_t *serial_memory_obj);
 
 /**
  * \brief De-initializes the SPI flash and frees the resources.

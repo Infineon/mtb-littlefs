@@ -8,7 +8,7 @@
  *
  *******************************************************************************
  * \copyright
- * (c) (2021-2024), Cypress Semiconductor Corporation (an Infineon company) or
+ * (c) (2021-2025), Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -46,16 +46,13 @@
 
 #include "lfs_sd_bd.h"
 #include "lfs_util.h"
-#include "cyhal_gpio.h"
-#include "cyhal_sdhc.h"
-
-#ifdef CY_IP_MXSDHC
-
-#include "cycfg_pins.h"
+#include "mtb_hal_sdhc.h"
 
 #if defined(LFS_THREADSAFE)
 #include "cyabs_rtos.h"
 #endif /* #if defined(LFS_THREADSAFE) */
+
+#ifdef CY_IP_MXSDHC
 
 #if defined(LFS_THREADSAFE) /* This block of code ignores violations of Directive 4.6 MISRA. Functions lfs_spi_flash_bd_unlock and lfs_spi_flash_bd_lock don't reproduce violations if LFS_THREADSAFE not defined. */
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Directive 4.6',7,\
@@ -76,7 +73,6 @@ extern "C"
 
 #define LFS_CFG_LOOKAHEAD_SIZE_MIN          (64UL)    /* Must be a multiple of 8 */
 #define SDHC_BLOCK_SIZE                     (512UL)
-#define DEFAULT_BUS_WIDTH                   (4U)
 #define ONE_BLOCK                           (1U)
 
 #if defined(LFS_THREADSAFE)
@@ -89,92 +85,29 @@ static cy_mutex_t _sd_bd_mutex;
 
 static int _erase(const struct lfs_config *lfs_cfg, lfs_block_t block);
 
-void lfs_sd_bd_get_default_config(lfs_sd_bd_config_t *bd_cfg)
-{
-    LFS_SD_BD_TRACE("lfs_sd_bd_get_default_config(%p)", (void*)bd_cfg);
-    LFS_ASSERT(NULL != bd_cfg);
-
-    bd_cfg->sdhc_config.enableLedControl = false;
-    bd_cfg->sdhc_config.lowVoltageSignaling = false;
-    bd_cfg->sdhc_config.isEmmc   = false;
-    bd_cfg->sdhc_config.busWidth = DEFAULT_BUS_WIDTH;
-
-    bd_cfg->cmd = NC;
-    bd_cfg->clk = NC;
-    bd_cfg->data0 = NC;
-    bd_cfg->data1 = NC;
-    bd_cfg->data2 = NC;
-    bd_cfg->data3 = NC;
-    bd_cfg->data4 = NC;
-    bd_cfg->data5 = NC;
-    bd_cfg->data6 = NC;
-    bd_cfg->data7 = NC;
-    bd_cfg->card_detect = NC;
-    bd_cfg->io_volt_sel = NC;
-    bd_cfg->card_if_pwr_en = NC;
-    bd_cfg->card_mech_write_prot = NC;
-    bd_cfg->led_ctrl = NC;
-    bd_cfg->card_emmc_reset = NC;
-    bd_cfg->block_clk = NULL;
-
-#ifdef CYBSP_SDHC_CMD
-    bd_cfg->cmd = CYBSP_SDHC_CMD;
-#endif
-
-#ifdef CYBSP_SDHC_CLK
-    bd_cfg->clk = CYBSP_SDHC_CLK;
-#endif
-
-#ifdef CYBSP_SDHC_IO0
-    bd_cfg->data0 = CYBSP_SDHC_IO0;
-#endif
-
-#ifdef CYBSP_SDHC_IO1
-    bd_cfg->data1 = CYBSP_SDHC_IO1;
-#endif
-
-#ifdef CYBSP_SDHC_IO2
-    bd_cfg->data2 = CYBSP_SDHC_IO2;
-#endif
-
-#ifdef  CYBSP_SDHC_IO3
-    bd_cfg->data3 = CYBSP_SDHC_IO3;
-#endif
-
-#ifdef CYBSP_SDHC_DETECT
-    bd_cfg->card_detect = CYBSP_SDHC_DETECT;
-#endif
-
-    LFS_SD_BD_TRACE("lfs_sd_bd_get_default_config -> %d", 0);
-}
-
-cy_rslt_t lfs_sd_bd_create(struct lfs_config *lfs_cfg, const lfs_sd_bd_config_t *bd_cfg)
+cy_rslt_t lfs_sd_bd_create(struct lfs_config *lfs_cfg, const mtb_hal_sdhc_t *sdhc_obj)
 {
     cy_rslt_t result = CY_RSLT_SUCCESS;
 
-    LFS_SD_BD_TRACE("lfs_sd_bd_create(%p, %p)", (void*)lfs_cfg, (void*)bd_cfg);
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
+    LFS_SD_BD_TRACE("lfs_sd_bd_create(%p, %p)", (void*)lfs_cfg, (void*)sdhc_obj);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
 
     LFS_ASSERT(NULL != lfs_cfg);
-    LFS_ASSERT(NULL != bd_cfg);
+    LFS_ASSERT(NULL != sdhc_obj);
 
-    /* Initialize the SD Card interface. */
-    result = cyhal_sdhc_init((cyhal_sdhc_t *)&bd_cfg->sdhc_obj, &bd_cfg->sdhc_config, bd_cfg->cmd, bd_cfg->clk,
-                             bd_cfg->data0, bd_cfg->data1, bd_cfg->data2, bd_cfg->data3,
-                             bd_cfg->data4, bd_cfg->data5, bd_cfg->data6, bd_cfg->data7,
-                             bd_cfg->card_detect, bd_cfg->io_volt_sel, bd_cfg->card_if_pwr_en,
-                             bd_cfg->card_mech_write_prot, bd_cfg->led_ctrl, bd_cfg->card_emmc_reset, bd_cfg->block_clk);
+#if defined(LFS_THREADSAFE)
+    /* Initialize the mutex. */
+    result = cy_rtos_init_mutex(&_sd_bd_mutex);
+#endif /* #if defined(LFS_THREADSAFE) */
 
 #if defined(LFS_THREADSAFE)
     if(CY_RSLT_SUCCESS == result)
     {
-        /* Initialize the mutex. */
-        result = cy_rtos_init_mutex(&_sd_bd_mutex);
-    }
 #endif /* #if defined(LFS_THREADSAFE) */
-
-    if(CY_RSLT_SUCCESS == result)
-    {
-        lfs_cfg->context     = (lfs_sd_bd_config_t *)bd_cfg;
+        lfs_cfg->context     = (mtb_hal_sdhc_t *)sdhc_obj;
 
         /* Block device operations */
         lfs_cfg->read        = lfs_sd_bd_read;
@@ -197,8 +130,7 @@ cy_rslt_t lfs_sd_bd_create(struct lfs_config *lfs_cfg, const lfs_sd_bd_config_t 
         lfs_cfg->prog_size   = SDHC_BLOCK_SIZE;
         lfs_cfg->block_size  = SDHC_BLOCK_SIZE;
 
-        result = cyhal_sdhc_get_block_count((cyhal_sdhc_t *) &bd_cfg->sdhc_obj, (uint32_t *) &lfs_cfg->block_count);
-
+        result = mtb_hal_sdhc_get_block_count((mtb_hal_sdhc_t *) sdhc_obj, (uint32_t *) &lfs_cfg->block_count);
         if(CY_RSLT_SUCCESS == result)
         {
             /* Refer to lfs.h for the description of the following parameters. */
@@ -227,40 +159,53 @@ cy_rslt_t lfs_sd_bd_create(struct lfs_config *lfs_cfg, const lfs_sd_bd_config_t 
              */
             lfs_cfg->lookahead_size = lfs_min((lfs_size_t) LFS_CFG_LOOKAHEAD_SIZE_MIN, 8UL * ((lfs_cfg->block_count + 63UL)/64UL) );
         }
+#if defined(LFS_THREADSAFE)
     }
+#endif /* #if defined(LFS_THREADSAFE) */
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SD_BD_TRACE("lfs_sd_bd_create -> %"PRIu32"", result);
-
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
     return result;
 }
 
 void lfs_sd_bd_destroy(const struct lfs_config *lfs_cfg)
 {
-    cy_rslt_t result = CY_RSLT_SUCCESS;
-
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SD_BD_TRACE("lfs_sd_bd_destroy(%p)", (void*)lfs_cfg);
-
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
     LFS_ASSERT(NULL != lfs_cfg);
 
-    CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the typr of "context"');
-    lfs_sd_bd_config_t *bd_cfg = (lfs_sd_bd_config_t *)(lfs_cfg->context);
-    cyhal_sdhc_free(&bd_cfg->sdhc_obj);
+    (void) lfs_cfg;
 
 #if defined(LFS_THREADSAFE)
+    cy_rslt_t result = CY_RSLT_SUCCESS;
     result = cy_rtos_deinit_mutex(&_sd_bd_mutex);
     LFS_ASSERT(CY_RSLT_SUCCESS == result);
+    CY_UNUSED_PARAMETER(result); /* To avoid compiler warning in Release mode. */
 #endif /* #if defined(LFS_THREADSAFE) */
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SD_BD_TRACE("lfs_sd_bd_destroy -> %d", 0);
-    CY_UNUSED_PARAMETER(result); /* To avoid compiler warning in Release mode. */
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
 }
 
 int lfs_sd_bd_read(const struct lfs_config *lfs_cfg, lfs_block_t block,
         lfs_off_t off, void *buffer, lfs_size_t size)
 {
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SD_BD_TRACE("lfs_sd_bd_read(%p, "
                     "0x%"PRIx32", %"PRIu32", %p, %"PRIu32")",
                 (void*)lfs_cfg, block, off, buffer, size);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
 
     /* Check if parameters are valid. */
     LFS_ASSERT(NULL != lfs_cfg);
@@ -272,30 +217,39 @@ int lfs_sd_bd_read(const struct lfs_config *lfs_cfg, lfs_block_t block,
     size_t block_count =  size / lfs_cfg->block_size;
     uint32_t addr = block + (off / lfs_cfg->block_size);
     CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the typr of "context"');
-    lfs_sd_bd_config_t *bd_cfg = (lfs_sd_bd_config_t *)(lfs_cfg->context);
+    mtb_hal_sdhc_t *sdhc_obj = (mtb_hal_sdhc_t *)(lfs_cfg->context);
 
     /* addr represents the block number at which read should begin */
     CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the function interface');
-    cy_rslt_t result = cyhal_sdhc_read_async(&bd_cfg->sdhc_obj, addr, buffer, &block_count);
-
+    
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5', 'The void* pointer buffer is cast to uint8_t* for byte-level access. It is guaranteed that buffer points to a memory region containing uint8_t data.');
+    cy_rslt_t result = mtb_hal_sdhc_read_async(sdhc_obj, addr, (uint8_t*)buffer, &block_count);
     if(CY_RSLT_SUCCESS == result)
     {
         /* Waits on a semaphore until the transfer completes, when RTOS_AWARE component is defined. */
-        result = cyhal_sdhc_wait_transfer_complete(&bd_cfg->sdhc_obj);
+        result = mtb_hal_sdhc_wait_transfer_complete(sdhc_obj);
     }
 
     int32_t res = GET_INT_RETURN_VALUE(result);
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SD_BD_TRACE("lfs_sd_bd_read -> %d", (int)res);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
     return res;
 }
 
 int lfs_sd_bd_prog(const struct lfs_config *lfs_cfg, lfs_block_t block,
         lfs_off_t off, const void *buffer, lfs_size_t size)
 {
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+        'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SD_BD_TRACE("lfs_sd_bd_prog(%p, "
                     "0x%"PRIx32", %"PRIu32", %p, %"PRIu32")",
                 (void*)lfs_cfg, block, off, buffer, size);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
 
     /* Check if parameters are valid. */
     LFS_ASSERT(NULL != lfs_cfg);
@@ -307,21 +261,27 @@ int lfs_sd_bd_prog(const struct lfs_config *lfs_cfg, lfs_block_t block,
     size_t block_count =  size / lfs_cfg->block_size;
     uint32_t addr = block + (off / lfs_cfg->block_size);
     CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the typr of "context"');
-    lfs_sd_bd_config_t *bd_cfg = (lfs_sd_bd_config_t *)(lfs_cfg->context);
+    mtb_hal_sdhc_t *sdhc_obj = (mtb_hal_sdhc_t *)(lfs_cfg->context);
 
-    /* addr represents the block number at which write should begin */
+    /* Addr represents the block number at which write should begin */
     CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the function interface');
-    cy_rslt_t result = cyhal_sdhc_write_async(&bd_cfg->sdhc_obj, addr, buffer, &block_count);
+
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5', 'The void* pointer buffer is cast to const uint8_t* for byte-level access. It is guaranteed that buffer points to a memory region containing const uint8_t data.');
+    cy_rslt_t result = mtb_hal_sdhc_write_async(sdhc_obj, addr, (const uint8_t*)buffer, &block_count);
 
     if(CY_RSLT_SUCCESS == result)
     {
         /* Waits on a semaphore until the transfer completes, when RTOS_AWARE component is defined. */
-        result = cyhal_sdhc_wait_transfer_complete(&bd_cfg->sdhc_obj);
+        result = mtb_hal_sdhc_wait_transfer_complete(sdhc_obj);
     }
 
     int32_t res = GET_INT_RETURN_VALUE(result);
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SD_BD_TRACE("lfs_sd_bd_prg -> %d", (int)res);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
     return res;
 }
 
@@ -332,30 +292,45 @@ int lfs_sd_bd_prog(const struct lfs_config *lfs_cfg, lfs_block_t block,
 
 static int _erase(const struct lfs_config *lfs_cfg, lfs_block_t block)
 {
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SD_BD_TRACE("lfs_sd_bd_erase(%p, 0x%"PRIx32")", (void*)lfs_cfg, block);
-
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
     CY_UNUSED_PARAMETER(lfs_cfg);
     CY_UNUSED_PARAMETER(block);
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SD_BD_TRACE("lfs_sd_bd_erase -> %d", 0);
+
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
     return 0;
 }
 
 int lfs_sd_bd_erase(const struct lfs_config *lfs_cfg, lfs_block_t block)
 {
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SD_BD_TRACE("lfs_sd_bd_erase(%p, 0x%"PRIx32")", (void*)lfs_cfg, block);
-
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
     /* Check if parameters are valid. */
     LFS_ASSERT(NULL != lfs_cfg);
     LFS_ASSERT(block < lfs_cfg->block_count);
 
     CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.5','The third-party defines the typr of "context"');
-    lfs_sd_bd_config_t *bd_cfg = (lfs_sd_bd_config_t *)(lfs_cfg->context);
+    mtb_hal_sdhc_t *sdhc_obj = (mtb_hal_sdhc_t *)(lfs_cfg->context);
 
-    cy_rslt_t result = cyhal_sdhc_erase(&bd_cfg->sdhc_obj, block, ONE_BLOCK, 0U);
+    cy_rslt_t result = mtb_hal_sdhc_erase(sdhc_obj, block, ONE_BLOCK, 0U);
     int32_t res = GET_INT_RETURN_VALUE(result);
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',1,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 21.6','Using the safe wrapper of printf');
     LFS_SD_BD_TRACE("lfs_sd_bd_erase -> %d", (int)res);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
     return res;
 }
 
@@ -365,8 +340,14 @@ int lfs_sd_bd_sync(const struct lfs_config *lfs_cfg)
 {
     CY_UNUSED_PARAMETER(lfs_cfg);
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.7',2,\
+    'Impossible to cast due-to the macros wrapper of printf')
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 21.6',2,\
+    'Using the safe wrapper of printf')
     LFS_SD_BD_TRACE("lfs_sd_bd_sync(%p)", (void*)lfs_cfg);
     LFS_SD_BD_TRACE("lfs_sd_bd_sync -> %d", 0);
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 21.6')
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.7')
     return 0;
 }
 

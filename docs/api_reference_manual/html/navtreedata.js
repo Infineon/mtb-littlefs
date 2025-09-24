@@ -25,17 +25,20 @@
 var NAVTREE =
 [
   [ "Block Device Drivers for Littlefs", "index.html", [
-    [ "Overview", "index.html#autotoc_md1", null ],
-    [ "Features", "index.html#autotoc_md2", [
-      [ "Devices and supported features:", "index.html#autotoc_md3", null ]
+    [ "Overview", "index.html#section_mainpage_overview", null ],
+    [ "General Description", "index.html#section_general_desc", null ],
+    [ "Quick Start Guide", "index.html#section_quick_start_guide", [
+      [ "Project creation", "index.html#section_qsg_project_creation", null ],
+      [ "HW Configuration in Device Configurator", "index.html#section_qsg_project_dev_conf", null ],
+      [ "Add mtb-littlefs logic to main.c", "index.html#section_qsg_main", null ],
+      [ "Project execution", "index.html#section_qsg_project_execution", null ]
     ] ],
-    [ "Quick start", "index.html#autotoc_md4", null ],
-    [ "Usage instructions", "index.html#autotoc_md5", [
-      [ "For the usage in an RTOS environment:", "index.html#autotoc_md6", null ]
+    [ "Configuration Considerations", "index.html#section_conf_cons", [
+      [ "Usage in an RTOS environment:", "index.html#section_rtos", null ]
     ] ],
-    [ "Dependencies", "index.html#autotoc_md7", null ],
-    [ "Supported Devices", "index.html#autotoc_md8", null ],
-    [ "More Information", "index.html#autotoc_md9", null ],
+    [ "Dependencies", "index.html#section_dependencies", null ],
+    [ "Changelog", "index.html#section_changelog", null ],
+    [ "More Information", "index.html#section_more_info", null ],
     [ "API Reference", "modules.html", "modules" ]
   ] ]
 ];

@@ -83,105 +83,245 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">Block Device Drivers for littlefs </div></div>
+  <div class="headertitle"><div class="title">Block Device Drivers for Littlefs </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p ><a class="anchor" id="md_README_doxygen"></a> </p>
-<h1><a class="anchor" id="autotoc_md1"></a>
+<div class="textblock"><h1><a class="anchor" id="section_mainpage_overview"></a>
 Overview</h1>
-<p >Provides a set of block device drivers for the <a href="https://github.com/littlefs-project/littlefs">littlefs</a> file system. The drivers' interface is very similar to <a href="https://github.com/littlefs-project/littlefs/blob/master/bd/lfs_rambd.h">lfs_rambd.h</a> provided with littlefs. See the API reference manual for driver-specific information.</p>
-<h1><a class="anchor" id="autotoc_md2"></a>
-Features</h1>
-<ul>
-<li>Supports SPI flash and SD card (Card mode) block devices</li>
-<li>Each driver provides the function to fetch the default configuration of the block device</li>
-<li>Implements the thread safety for multi-threaded RTOS environments using the <a href="https://github.com/Infineon/abstraction-rtos">abstraction-rtos</a> library</li>
-<li>Built on top of existing drivers such as <a href="https://github.com/Infineon/serial-flash">serial-flash</a> and HAL</li>
+<p >This library provides implemented drivers for the <a href="https://github.com/littlefs-project/littlefs">littlefs</a> file system. Typically, drivers are based on the HAL driver or other high-level middleware such as <a href="https://github.com/Infineon/serial-memory">serial-memory</a>.</p>
+<h1><a class="anchor" id="section_general_desc"></a>
+General Description</h1>
+<p >This middleware:</p><ul>
+<li>Supports two types drivers: SPI NOR flash and SD card (Card mode).</li>
+<li>Implements the thread safety for multi-threaded RTOS environments using the <a href="https://github.com/Infineon/abstraction-rtos">abstraction-rtos</a> library.</li>
+<li>Built on top of existing drivers such as <a href="https://github.com/Infineon/serial-memory">serial-memory</a> and HAL</li>
 <li>Supports Serial Flash Discoverable Parameter (SFDP) mode for SPI flash memories</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md3"></a>
-Devices and supported features:</h2>
-<table class="markdownTable">
-<tr class="markdownTableHead">
-<th class="markdownTableHeadLeft">Device   </th><th class="markdownTableHeadRight">SPI flash   </th><th class="markdownTableHeadRight">SD card    </th></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyLeft">CAT1A   </td><td class="markdownTableBodyRight">Supported   </td><td class="markdownTableBodyRight">Supported    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyLeft">CAT1B   </td><td class="markdownTableBodyRight">Supported   </td><td class="markdownTableBodyRight">Not supported   </td></tr>
-</table>
-<h1><a class="anchor" id="autotoc_md4"></a>
-Quick start</h1>
-<p >The <a href="https://github.com/Infineon/mtb-example-psoc6-filesystem-littlefs-freertos">mtb-example-psoc6-filesystem-littlefs-freertos</a> code example describes the implementation of the littlefs file system on SD card and QSPI NOR flash.</p>
+<h1><a class="anchor" id="section_quick_start_guide"></a>
+Quick Start Guide</h1>
+<p >The Quick Start Guide section has simple examples for the SPI flash and SD Card drivers. Examples are used to initialize the file system on the target memory, demonstrate the creation/opening file, and update its content.</p>
+<h2><a class="anchor" id="section_qsg_project_creation"></a>
+Project creation</h2>
 <ol type="1">
-<li>Create an empty application using the Project Creator tool in the ModusToolbox™ software.</li>
-<li>Add the <em>mtb-littlefs</em> and <em>retarget-io</em> libraries using the Library Manager.</li>
-<li>Add the below code to <em>main.c</em>.</li>
-<li>For PSoC™ Edge E84 MCUs, add macro ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH to the DEFINES variable in the project Makefile.</li>
-<li>Open a serial terminal. Set the serial port parameters to 8N1 and 115200 baud.</li>
-<li><p class="startli">Build the application and program the kit.</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;cybsp.h&quot;</span></div>
-<div class="line"><span class="preprocessor">#include &quot;cy_retarget_io.h&quot;</span></div>
-<div class="line"><span class="preprocessor">#include &quot;lfs.h&quot;</span></div>
-<div class="line"><span class="preprocessor">#include &quot;lfs_spi_flash_bd.h&quot;</span></div>
+<li>Create an empty application using the Project Creator tool in the ModusToolbox&trade; software.</li>
+<li>Add the <a href="https://github.com/Infineon/mtb-littlefs">mtb-littlefs</a> and <a href="https://github.com/Infineon/retarget-io">retarget-io</a> libraries using the Library Manager.</li>
+<li>To run an example in the RTOS-environment, add the <a href="https://github.com/Infineon/freertos">FreeRTOS</a> library using the Library Manager. Then, add <em>RTOS_AWARE</em> and <em>FREERTOS</em> to the Makefile COMPONENTS variable. <div class="fragment"><div class="line">COMPONENTS += RTOS_AWARE FREERTOS </div>
+</div><!-- fragment --> <dl class="section note"><dt>Note</dt><dd>In the RTOS environment, select Active mode for System Idle Power Mode in Power personality (System Tab).</dd></dl>
+<em>The next steps are applicable only for the SPI flash driver</em></li>
+<li>To use the same storage for code execution and File System, add the ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH macro to the DEFINES variable in the project Makefile. <div class="fragment"><div class="line">DEFINES += ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH </div>
+</div><!-- fragment --> <dl class="section note"><dt>Note</dt><dd>For some devices, the same storage for code execution and File System is used as the default flow. So, adding ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH is mandatory.</dd></dl>
+</li>
+</ol>
+<h2><a class="anchor" id="section_qsg_project_dev_conf"></a>
+HW Configuration in Device Configurator</h2>
+<p >All HW resources used in this QSG must be configured in the Device Configurator:</p><ul>
+<li>UART for logging</li>
+<li>One pin to check the button status</li>
+<li>SD Card HW - SDHC</li>
+<li>SPI flash HW - SMIF</li>
+</ul>
+<p >If a different alias name is selected, instead of expected resources name in the Device Configurator, the code snippets must be updated.</p>
+<table class="doxtable">
+<tr>
+<th>Resource</th><th>Name </th></tr>
+<tr>
+<td>Quad Serial Memory Interface </td><td>SMIF_LITTLEFS  </td></tr>
+<tr>
+<td>SD Host Controller </td><td>SDHC_LITTLEFS  </td></tr>
+<tr>
+<td>Serial Communication Block (for debug UART) </td><td>DEBUG_UART  </td></tr>
+<tr>
+<td>Pin </td><td>CYBSP_USER_BTN  </td></tr>
+</table>
+<p ><em>Recommended SD Card configuration</em> </p><div class="image">
+<img src="littlefs_sd_card_cat1d.png" alt=""/>
+</div>
+<p ><em>Recommended SMIF configuration</em> </p><div class="image">
+<img src="littlefs_smif_cat1d.png" alt=""/>
+</div>
+<p ><em>Recommended Debug UART</em> </p><div class="image">
+<img src="littlefs_debug_uart_part1_cat1d.png" alt=""/>
+</div>
+ <div class="image">
+<img src="littlefs_debug_uart_part2_cat1d.png" alt=""/>
+</div>
+<p ><em>Recommended Button Pin configuration</em> </p><div class="image">
+<img src="littlefs_user_btn_cat1d.png" alt=""/>
+</div>
+<h2><a class="anchor" id="section_qsg_main"></a>
+Add mtb-littlefs logic to main.c</h2>
+<p ><b>Specific steps for SPI flash driver configuration</b></p><ol type="1">
+<li>Include the required headers. <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;lfs_spi_flash_bd.h&quot;</span></div>
+<div class="line"><span class="preprocessor">#include &quot;mtb_serial_memory.h&quot;</span></div>
+<div class="line"><span class="preprocessor">#include &quot;cy_smif.h&quot;</span></div>
+<div class="line"><span class="preprocessor">#include &quot;cycfg_qspi_memslot.h&quot;</span></div>
+</div><!-- fragment --></li>
+<li>If XIP support is enabled, limit the available space for littlefs on the memory device. <div class="fragment"><div class="line"><span class="preprocessor">#define FLASH_LFS_ADDRESS_START                 (0xA00000U)</span></div>
+<div class="line"><span class="preprocessor">#define FLASH_LFS_SIZE                          (0x600000U)</span></div>
+</div><!-- fragment --> <dl class="section note"><dt>Note</dt><dd>The addresses and sizes depend on the memory device and project memory layout.</dd></dl>
+</li>
+<li>Add global variables. <div class="fragment"><div class="line"><span class="keyword">static</span> mtb_serial_memory_t serial_memory_obj;</div>
 <div class="line"> </div>
-<div class="line"><span class="preprocessor">#if defined (COMPONENT_CAT1B)</span></div>
-<div class="line"><span class="preprocessor">#define FLASH_LFS_ADDRESS_START                 (0x80000U)</span></div>
-<div class="line"><span class="preprocessor">#define FLASH_LFS_SIZE                          (0x80000U)</span></div>
-<div class="line"><span class="preprocessor">#endif </span><span class="comment">/* #if defined (COMPONENT_CAT1B) */</span><span class="preprocessor"></span></div>
-<div class="line"> </div>
-<div class="line"><span class="keywordtype">void</span> check_status(<span class="keyword">const</span> <span class="keywordtype">char</span> *message, uint32_t status); <span class="comment">/* Functions must have interface definition before declarations to satisfy MISRA C-2012 */</span></div>
-<div class="line"> </div>
-<div class="line"><span class="keywordtype">void</span> check_status(<span class="keyword">const</span> <span class="keywordtype">char</span> *message, uint32_t status)</div>
-<div class="line">{</div>
-<div class="line">    <span class="keywordflow">if</span> (0u != status)</div>
-<div class="line">    {</div>
-<div class="line">        (void)printf(<span class="stringliteral">&quot;\n================================================================================\n&quot;</span>);</div>
-<div class="line">        (void)printf(<span class="stringliteral">&quot;\nFAIL: %s\n&quot;</span>, message);</div>
-<div class="line">        (void)printf(<span class="stringliteral">&quot;Error Code: 0x%08&quot;</span>PRIx32<span class="stringliteral">&quot;\n&quot;</span>, status);</div>
-<div class="line">        (void)printf(<span class="stringliteral">&quot;\n================================================================================\n&quot;</span>);</div>
-<div class="line"> </div>
-<div class="line">        <span class="keywordflow">while</span>(<span class="keyword">true</span>)</div>
-<div class="line">        {</div>
-<div class="line">        }</div>
-<div class="line">    }</div>
-<div class="line">}</div>
-<div class="line"> </div>
-<div class="line"><span class="keywordtype">int</span> main(<span class="keywordtype">void</span>)</div>
+<div class="line"><span class="keyword">static</span> cy_stc_smif_mem_context_t smifMemContext;</div>
+<div class="line"><span class="keyword">static</span> cy_stc_smif_mem_info_t  smifMemInfo;</div>
+</div><!-- fragment --></li>
+<li>Add the function for the NOR HW initialization. <div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> init_lfs(<span class="keywordtype">void</span>)</div>
 <div class="line">{</div>
 <div class="line">    cy_rslt_t result;</div>
-<div class="line">    uint32_t boot_count = 0;</div>
 <div class="line"> </div>
-<div class="line">    <span class="comment">/* variables used by the filesystem */</span></div>
+<div class="line">    result = mtb_serial_memory_setup(&amp;serial_memory_obj, MTB_SERIAL_MEMORY_CHIP_SELECT_1, SMIF_LITTLEFS_HW, &amp;SMIF_LITTLEFS_hal_clock,</div>
+<div class="line">                            &amp;smifMemContext, &amp;smifMemInfo, &amp;smif0BlockConfig);</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordflow">if</span> (CY_RSLT_SUCCESS != result)</div>
+<div class="line">    {</div>
+<div class="line">        check_status(<span class="stringliteral">&quot;mtb_serial_memory_setup returns error status&quot;</span>, (uint32_t)result);</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">#if defined (CY_IP_MXS40SSRSS) || defined (CY_IP_MXS22SRSS)</span></div>
+<div class="line">    <span class="comment">/* Comment this line if XIP mode is not enabled */</span></div>
+<div class="line">    <a class="code hl_function" href="group__group__lfs__spi__flash__bd.html#gad606397bae4b654cba612321c33d460a">lfs_spi_flash_bd_configure_memory</a>(&amp;lfs_cfg, FLASH_LFS_ADDRESS_START, FLASH_LFS_SIZE);</div>
+<div class="line"><span class="preprocessor">#endif </span><span class="comment">/* #if defined (CY_IP_MXS40SSRSS) */</span><span class="preprocessor"></span></div>
+<div class="line"> </div>
+<div class="line">    result = <a class="code hl_function" href="group__group__lfs__spi__flash__bd.html#ga848ea1ce62ac4f938a36d2ab08cbf2c4">lfs_spi_flash_bd_create</a>(&amp;lfs_cfg, &amp;serial_memory_obj);</div>
+<div class="line">    check_status(<span class="stringliteral">&quot;Creating SPI flash block device failed.&quot;</span>, result);</div>
+<div class="line">}</div>
+<div class="ttc" id="agroup__group__lfs__spi__flash__bd_html_ga848ea1ce62ac4f938a36d2ab08cbf2c4"><div class="ttname"><a href="group__group__lfs__spi__flash__bd.html#ga848ea1ce62ac4f938a36d2ab08cbf2c4">lfs_spi_flash_bd_create</a></div><div class="ttdeci">cy_rslt_t lfs_spi_flash_bd_create(struct lfs_config *lfs_cfg, mtb_serial_memory_t *serial_memory_obj)</div><div class="ttdoc">Initializes the SPI flash and populates the lfs_config structure with the default values.</div><div class="ttdef"><b>Definition:</b> lfs_spi_flash_bd.c:136</div></div>
+<div class="ttc" id="agroup__group__lfs__spi__flash__bd_html_gad606397bae4b654cba612321c33d460a"><div class="ttname"><a href="group__group__lfs__spi__flash__bd.html#gad606397bae4b654cba612321c33d460a">lfs_spi_flash_bd_configure_memory</a></div><div class="ttdeci">void lfs_spi_flash_bd_configure_memory(const struct lfs_config *lfs_cfg, uint32_t address, uint32_t region_size)</div><div class="ttdoc">Configures the memory region used by littlefs.</div></div>
+</div><!-- fragment --></li>
+<li>Add the deinit function. <div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> deinit_lfs(<span class="keywordtype">void</span>)</div>
+<div class="line">{</div>
+<div class="line">    <a class="code hl_function" href="group__group__lfs__spi__flash__bd.html#gafcfe68f0485727b03ea984f279a4ae6b">lfs_spi_flash_bd_destroy</a>(&amp;lfs_cfg);</div>
+<div class="line">}</div>
+<div class="ttc" id="agroup__group__lfs__spi__flash__bd_html_gafcfe68f0485727b03ea984f279a4ae6b"><div class="ttname"><a href="group__group__lfs__spi__flash__bd.html#gafcfe68f0485727b03ea984f279a4ae6b">lfs_spi_flash_bd_destroy</a></div><div class="ttdeci">void lfs_spi_flash_bd_destroy(const struct lfs_config *lfs_cfg)</div><div class="ttdoc">De-initializes the SPI flash and frees the resources.</div><div class="ttdef"><b>Definition:</b> lfs_spi_flash_bd.c:226</div></div>
+</div><!-- fragment --></li>
+</ol>
+<p ><b>Specific steps for the SD Card driver configuration</b></p><ol type="1">
+<li>Include the required headers. <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;lfs_sd_bd.h&quot;</span></div>
+<div class="line"><span class="preprocessor">#include &quot;mtb_hal_sdhc.h&quot;</span></div>
+<div class="line"><span class="preprocessor">#include &quot;cy_sd_host.h&quot;</span></div>
+</div><!-- fragment --></li>
+<li>Add global variables. <div class="fragment"><div class="line"><span class="keyword">static</span> mtb_hal_sdhc_t sdhc_obj;</div>
+<div class="line"><span class="keyword">static</span> cy_stc_sd_host_context_t sdhc_host_context;</div>
+</div><!-- fragment --></li>
+<li>Add the interrupt handler for SD Card HW. <div class="fragment"><div class="line"><span class="keywordtype">void</span> sd_card_isr(<span class="keywordtype">void</span>)</div>
+<div class="line">{</div>
+<div class="line">    mtb_hal_sdhc_process_interrupt(&amp;sdhc_obj);</div>
+<div class="line">}</div>
+</div><!-- fragment --></li>
+<li>Add the Cy_SD_Host_IsCardConnected() function <div class="fragment"><div class="line"><span class="keywordtype">bool</span> Cy_SD_Host_IsCardConnected(SDHC_Type <span class="keyword">const</span> *base)</div>
+<div class="line">{</div>
+<div class="line">    (void) base;</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line">}</div>
+</div><!-- fragment --></li>
+<li>Add the function for the SD Card HW initialization. <div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> init_lfs(<span class="keywordtype">void</span>)</div>
+<div class="line">{</div>
+<div class="line">    cy_rslt_t result;</div>
+<div class="line">    cy_en_sd_host_status_t pdl_sdhc_status;</div>
+<div class="line">    cy_en_sysint_status_t  pdl_sysint_status;</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">/* The SD Card should be enabled before calling any other SD Card APIs */</span></div>
+<div class="line">    Cy_SD_Host_Enable(SDHC_LITTLEFS_HW);</div>
+<div class="line"> </div>
+<div class="line">    pdl_sdhc_status = Cy_SD_Host_Init(SDHC_LITTLEFS_HW, &amp;SDHC_LITTLEFS_config, &amp;sdhc_host_context);</div>
+<div class="line">    <span class="keywordflow">if</span> (CY_SD_HOST_SUCCESS != pdl_sdhc_status)</div>
+<div class="line">    {</div>
+<div class="line">        check_status(<span class="stringliteral">&quot;Cy_SD_Host_Init returns error status&quot;</span>, (uint32_t)pdl_sdhc_status);</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    pdl_sdhc_status = Cy_SD_Host_InitCard(SDHC_LITTLEFS_HW, &amp;SDHC_LITTLEFS_card_cfg, &amp;sdhc_host_context);</div>
+<div class="line">    <span class="keywordflow">if</span> (CY_SD_HOST_SUCCESS != pdl_sdhc_status)</div>
+<div class="line">    {</div>
+<div class="line">        check_status(<span class="stringliteral">&quot;Cy_SD_Host_InitCard returns error status&quot;</span>, (uint32_t)pdl_sdhc_status);</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    result = mtb_hal_sdhc_setup(&amp;sdhc_obj, &amp;SDHC_LITTLEFS_sdhc_hal_config, NULL, &amp;sdhc_host_context);</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordflow">if</span> (CY_RSLT_SUCCESS != result)</div>
+<div class="line">    {</div>
+<div class="line">        check_status(<span class="stringliteral">&quot;mtb_hal_sdhc_setup returns error status&quot;</span>, (uint32_t)pdl_sdhc_status);</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    cy_stc_sysint_t sdhc_isr_config =</div>
+<div class="line">    {</div>
+<div class="line">        .intrSrc = SDHC_LITTLEFS_IRQ,</div>
+<div class="line">        .intrPriority = 3U</div>
+<div class="line">    };</div>
+<div class="line"> </div>
+<div class="line">    pdl_sysint_status = Cy_SysInt_Init(&amp;sdhc_isr_config, sd_card_isr);</div>
+<div class="line">    <span class="keywordflow">if</span> (CY_SYSINT_SUCCESS != pdl_sysint_status)</div>
+<div class="line">    {</div>
+<div class="line">        check_status(<span class="stringliteral">&quot;Cy_SysInt_Init returns error status&quot;</span>, (uint32_t)pdl_sdhc_status);</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    NVIC_EnableIRQ((IRQn_Type) sdhc_isr_config.intrSrc);</div>
+<div class="line"> </div>
+<div class="line">    result = <a class="code hl_function" href="group__group__lfs__sd__bd.html#ga7f91a3a82e218819c85b38cbd6b2aac3">lfs_sd_bd_create</a>(&amp;lfs_cfg, &amp;sdhc_obj);</div>
+<div class="line">    check_status(<span class="stringliteral">&quot;Creating SD Card block device failed.&quot;</span>, result);</div>
+<div class="line">}</div>
+<div class="ttc" id="agroup__group__lfs__sd__bd_html_ga7f91a3a82e218819c85b38cbd6b2aac3"><div class="ttname"><a href="group__group__lfs__sd__bd.html#ga7f91a3a82e218819c85b38cbd6b2aac3">lfs_sd_bd_create</a></div><div class="ttdeci">cy_rslt_t lfs_sd_bd_create(struct lfs_config *lfs_cfg, const mtb_hal_sdhc_t *sdhc_obj)</div><div class="ttdoc">Initializes the SD card interface and populates the lfs_config structure with the default values.</div></div>
+</div><!-- fragment --></li>
+<li>Add the deinit function. <div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> deinit_lfs(<span class="keywordtype">void</span>)</div>
+<div class="line">{</div>
+<div class="line">    <a class="code hl_function" href="group__group__lfs__sd__bd.html#ga739c5699c697fc686d7754ad23561614">lfs_sd_bd_destroy</a>(&amp;lfs_cfg);</div>
+<div class="line">}</div>
+<div class="ttc" id="agroup__group__lfs__sd__bd_html_ga739c5699c697fc686d7754ad23561614"><div class="ttname"><a href="group__group__lfs__sd__bd.html#ga739c5699c697fc686d7754ad23561614">lfs_sd_bd_destroy</a></div><div class="ttdeci">void lfs_sd_bd_destroy(const struct lfs_config *lfs_cfg)</div><div class="ttdoc">De-initializes the SD interface and frees the resources.</div><div class="ttdef"><b>Definition:</b> lfs_sd_bd.c:174</div></div>
+</div><!-- fragment --></li>
+</ol>
+<p ><b>Common code</b></p><ol type="1">
+<li>Include the required headers. <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;cybsp.h&quot;</span></div>
+<div class="line"><span class="preprocessor">#include &quot;cy_retarget_io.h&quot;</span></div>
+<div class="line"><span class="preprocessor">#include &quot;lfs.h&quot;</span></div>
+</div><!-- fragment --> If the FREERTOS is used, include the next headers. <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;FreeRTOS.h&quot;</span></div>
+<div class="line"><span class="preprocessor">#include &quot;task.h&quot;</span></div>
+</div><!-- fragment --></li>
+<li>Add the common define to the project. <div class="fragment"><div class="line"><span class="comment">/* Debounce delay for the user button. */</span></div>
+<div class="line"><span class="preprocessor">#define DEBOUNCE_DELAY_MS                       (50U)</span></div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">#if defined(COMPONENT_RTOS_AWARE)</span></div>
+<div class="line"><span class="preprocessor">#define MTB_LFS_TASK_STACK_SIZE                 (512U)</span></div>
+<div class="line"><span class="preprocessor">#endif </span><span class="comment">/* #if defined(COMPONENT_RTOS_AWARE) */</span><span class="preprocessor"></span></div>
+</div><!-- fragment --></li>
+<li>Add common global variables. <div class="fragment"><div class="line"><span class="comment">/* HAL object for button */</span></div>
+<div class="line"><span class="keyword">static</span> mtb_hal_gpio_t button_obj;</div>
+<div class="line"><span class="keyword">static</span> <span class="keyword">struct </span>lfs_config lfs_cfg;</div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">#if defined(COMPONENT_RTOS_AWARE)</span></div>
+<div class="line"><span class="keyword">static</span> TaskHandle_t mtb_lfs_task_handle;</div>
+<div class="line"><span class="preprocessor">#else</span></div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">bool</span> btn_press = <span class="keyword">false</span>;</div>
+<div class="line"><span class="preprocessor">#endif </span><span class="comment">/* #if defined(COMPONENT_RTOS_AWARE) */</span><span class="preprocessor"></span></div>
+</div><!-- fragment --></li>
+<li>Add the function prototypes. <div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> user_button_callback(<span class="keywordtype">void</span> *handler_arg, mtb_hal_gpio_event_t event);</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> btn_init(<span class="keywordtype">void</span>);</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> check_status(<span class="keyword">const</span> <span class="keywordtype">char</span> *message, uint32_t status);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> mtb_lfs_boot_count(<span class="keywordtype">void</span> * arg);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> init_lfs(<span class="keywordtype">void</span>);</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> deinit_lfs(<span class="keywordtype">void</span>);</div>
+</div><!-- fragment --></li>
+<li>Add the boot count function. <div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> mtb_lfs_boot_count(<span class="keywordtype">void</span> * arg)</div>
+<div class="line">{</div>
+<div class="line">    <span class="comment">/* Avoid compilers error */</span></div>
+<div class="line">    (void) arg;</div>
+<div class="line"> </div>
+<div class="line">    uint32_t boot_count = 0U;</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">/* Variables used by the filesystem */</span></div>
 <div class="line">    lfs_t lfs_inst;</div>
-<div class="line">    <span class="keyword">struct </span>lfs_config lfs_cfg;</div>
 <div class="line">    lfs_file_t file;</div>
-<div class="line">    <a class="code hl_struct" href="group__group__lfs__spi__flash__bd.html#structlfs__spi__flash__bd__config__t">lfs_spi_flash_bd_config_t</a> bd_cfg;</div>
 <div class="line"> </div>
-<div class="line">    <span class="comment">/* Initialize the device and board peripherals */</span></div>
-<div class="line">    result = cybsp_init();</div>
-<div class="line">    CY_ASSERT (result == CY_RSLT_SUCCESS);</div>
+<div class="line">    <span class="comment">/* Initialize user button */</span></div>
+<div class="line">    btn_init();</div>
 <div class="line"> </div>
-<div class="line">    <span class="comment">/* Enable global interrupts */</span></div>
-<div class="line">    __enable_irq();</div>
-<div class="line"> </div>
-<div class="line">    <span class="comment">/* Initialize retarget-io to use the debug UART port */</span></div>
-<div class="line">    (void)cy_retarget_io_init(CYBSP_DEBUG_UART_TX, CYBSP_DEBUG_UART_RX, CY_RETARGET_IO_BAUDRATE);</div>
-<div class="line"> </div>
-<div class="line">    (void)printf(<span class="stringliteral">&quot;\nIncrementing the boot count on SPI flash\n\n&quot;</span>);</div>
-<div class="line"> </div>
-<div class="line">    <span class="comment">/* Get the default configuration for the SPI flash block device. */</span></div>
-<div class="line">    <a class="code hl_function" href="group__group__lfs__spi__flash__bd.html#gadc512a6ca48b34ab5f124a8d4a097595">lfs_spi_flash_bd_get_default_config</a>(&amp;bd_cfg);</div>
+<div class="line">    (void)printf(<span class="stringliteral">&quot;\nIncrementing the boot count on target memory\n\n&quot;</span>);</div>
 <div class="line"> </div>
 <div class="line">    <span class="comment">/* Initialize the pointers in lfs_cfg to NULL. */</span></div>
 <div class="line">    (void)memset(&amp;lfs_cfg, 0, <span class="keyword">sizeof</span>(lfs_cfg));</div>
 <div class="line"> </div>
-<div class="line"><span class="preprocessor">#if defined (COMPONENT_CAT1B)</span></div>
-<div class="line">    <a class="code hl_function" href="group__group__lfs__spi__flash__bd.html#gad606397bae4b654cba612321c33d460a">lfs_spi_flash_bd_configure_memory</a>(&amp;lfs_cfg, FLASH_LFS_ADDRESS_START, FLASH_LFS_SIZE);</div>
-<div class="line"><span class="preprocessor">#endif </span><span class="comment">/* #if defined (COMPONENT_CAT1B) */</span><span class="preprocessor"></span></div>
-<div class="line"> </div>
-<div class="line">    <span class="comment">/* Create the SPI flash block device. */</span></div>
-<div class="line">    result = <a class="code hl_function" href="group__group__lfs__spi__flash__bd.html#ga2757e78734174021644b85d7e2f6b708">lfs_spi_flash_bd_create</a>(&amp;lfs_cfg, &amp;bd_cfg);</div>
-<div class="line">    check_status(<span class="stringliteral">&quot;Creating SPI flash block device failed.&quot;</span>, result);</div>
+<div class="line">    init_lfs();</div>
 <div class="line"> </div>
 <div class="line">    (void)printf(<span class="stringliteral">&quot;Number of blocks: %&quot;</span>PRIu32<span class="stringliteral">&quot;\n&quot;</span>, lfs_cfg.block_count);</div>
 <div class="line">    (void)printf(<span class="stringliteral">&quot;Erase block size: %&quot;</span>PRIu32<span class="stringliteral">&quot; bytes\n&quot;</span>, lfs_cfg.block_size);</div>
@@ -216,62 +356,208 @@ Quick start</h1>
 <div class="line">    <span class="comment">/* Print the boot count. */</span></div>
 <div class="line">    (void)printf(<span class="stringliteral">&quot;\nboot_count: %&quot;</span>PRIu32<span class="stringliteral">&quot;\n&quot;</span>, boot_count);</div>
 <div class="line"> </div>
-<div class="line">    <span class="comment">/* Free the resources associated with the block device. */</span></div>
-<div class="line">    <a class="code hl_function" href="group__group__lfs__spi__flash__bd.html#gafcfe68f0485727b03ea984f279a4ae6b">lfs_spi_flash_bd_destroy</a>(&amp;lfs_cfg);</div>
+<div class="line">    <span class="comment">/* Enable the user button interrupt */</span></div>
+<div class="line">    mtb_hal_gpio_enable_event(&amp;button_obj, MTB_HAL_GPIO_IRQ_FALL, <span class="keyword">true</span>);</div>
 <div class="line"> </div>
-<div class="line">    <span class="keywordflow">for</span> (;;) </div>
+<div class="line">    <span class="comment">/* Wait until the user button press is notified through the interrupt */</span></div>
+<div class="line">    <span class="keywordflow">while</span> (<span class="keyword">true</span>)</div>
+<div class="line">    {</div>
+<div class="line"><span class="preprocessor">#if defined (COMPONENT_RTOS_AWARE)</span></div>
+<div class="line">        <span class="keywordflow">if</span>(1UL == ulTaskNotifyTake(pdTRUE, portMAX_DELAY))</div>
+<div class="line">        {</div>
+<div class="line"><span class="preprocessor">#else</span></div>
+<div class="line">        <span class="keywordflow">if</span>(btn_press)</div>
+<div class="line">        {</div>
+<div class="line">            btn_press = <span class="keyword">false</span>;</div>
+<div class="line"><span class="preprocessor">#endif </span><span class="comment">/* #if defined (COMPONENT_RTOS_AWARE) */</span><span class="preprocessor"></span></div>
+<div class="line">            cy_rslt_t result;</div>
+<div class="line">            <span class="comment">/* Debounce the button press. */</span></div>
+<div class="line">            result = mtb_hal_system_delay_ms(DEBOUNCE_DELAY_MS);</div>
+<div class="line">            CY_ASSERT(CY_RSLT_SUCCESS == result);</div>
+<div class="line">            (void) result;</div>
+<div class="line"> </div>
+<div class="line">            <span class="keywordflow">if</span>(!mtb_hal_gpio_read(&amp;button_obj))</div>
+<div class="line">            {</div>
+<div class="line">                <span class="keywordflow">break</span>;</div>
+<div class="line">            }</div>
+<div class="line">        }</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">/* User button is pressed. Format the block device. */</span></div>
+<div class="line">    printf(<span class="stringliteral">&quot;Formatting the block device...\n\r&quot;</span>);</div>
+<div class="line">    lfs_format(&amp;lfs_inst, &amp;lfs_cfg);</div>
+<div class="line">    printf(<span class="stringliteral">&quot;Formatting completed...\n\r&quot;</span>);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">/* Free the resources associated with the block device. */</span></div>
+<div class="line">    deinit_lfs();</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordflow">for</span> (;;)</div>
 <div class="line">    {</div>
 <div class="line">    }</div>
 <div class="line">}</div>
-<div class="ttc" id="agroup__group__lfs__spi__flash__bd_html_ga2757e78734174021644b85d7e2f6b708"><div class="ttname"><a href="group__group__lfs__spi__flash__bd.html#ga2757e78734174021644b85d7e2f6b708">lfs_spi_flash_bd_create</a></div><div class="ttdeci">cy_rslt_t lfs_spi_flash_bd_create(struct lfs_config *lfs_cfg, const lfs_spi_flash_bd_config_t *bd_cfg)</div><div class="ttdoc">Initializes the SPI flash and populates the lfs_config structure with the default values.</div><div class="ttdef"><b>Definition:</b> lfs_spi_flash_bd.c:194</div></div>
-<div class="ttc" id="agroup__group__lfs__spi__flash__bd_html_gad606397bae4b654cba612321c33d460a"><div class="ttname"><a href="group__group__lfs__spi__flash__bd.html#gad606397bae4b654cba612321c33d460a">lfs_spi_flash_bd_configure_memory</a></div><div class="ttdeci">void lfs_spi_flash_bd_configure_memory(const struct lfs_config *lfs_cfg, uint32_t address, uint32_t region_size)</div><div class="ttdoc">Configures the memory region used by littlefs.</div><div class="ttdef"><b>Definition:</b> lfs_spi_flash_bd.c:183</div></div>
-<div class="ttc" id="agroup__group__lfs__spi__flash__bd_html_gadc512a6ca48b34ab5f124a8d4a097595"><div class="ttname"><a href="group__group__lfs__spi__flash__bd.html#gadc512a6ca48b34ab5f124a8d4a097595">lfs_spi_flash_bd_get_default_config</a></div><div class="ttdeci">void lfs_spi_flash_bd_get_default_config(lfs_spi_flash_bd_config_t *bd_cfg)</div><div class="ttdoc">Fetches the default configuration for the block device for use with the lfs_spi_flash_bd_create() fun...</div></div>
-<div class="ttc" id="agroup__group__lfs__spi__flash__bd_html_gafcfe68f0485727b03ea984f279a4ae6b"><div class="ttname"><a href="group__group__lfs__spi__flash__bd.html#gafcfe68f0485727b03ea984f279a4ae6b">lfs_spi_flash_bd_destroy</a></div><div class="ttdeci">void lfs_spi_flash_bd_destroy(const struct lfs_config *lfs_cfg)</div><div class="ttdoc">De-initializes the SPI flash and frees the resources.</div><div class="ttdef"><b>Definition:</b> lfs_spi_flash_bd.c:290</div></div>
-<div class="ttc" id="agroup__group__lfs__spi__flash__bd_html_structlfs__spi__flash__bd__config__t"><div class="ttname"><a href="group__group__lfs__spi__flash__bd.html#structlfs__spi__flash__bd__config__t">lfs_spi_flash_bd_config_t</a></div><div class="ttdoc">Configuration structure for the SPI flash block device.</div><div class="ttdef"><b>Definition:</b> lfs_spi_flash_bd.h:131</div></div>
+</div><!-- fragment --></li>
+<li>Add the check status function. <div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> check_status(<span class="keyword">const</span> <span class="keywordtype">char</span> *message, uint32_t status)</div>
+<div class="line">{</div>
+<div class="line">    <span class="keywordflow">if</span> (0u != status)</div>
+<div class="line">    {</div>
+<div class="line">        (void)printf(<span class="stringliteral">&quot;\n================================================================================\n&quot;</span>);</div>
+<div class="line">        (void)printf(<span class="stringliteral">&quot;\nFAIL: %s\n&quot;</span>, message);</div>
+<div class="line">        (void)printf(<span class="stringliteral">&quot;Error Code: 0x%08&quot;</span>PRIx32<span class="stringliteral">&quot;\n&quot;</span>, status);</div>
+<div class="line">        (void)printf(<span class="stringliteral">&quot;\n================================================================================\n&quot;</span>);</div>
+<div class="line"> </div>
+<div class="line">        <span class="keywordflow">while</span>(<span class="keyword">true</span>)</div>
+<div class="line">        {</div>
+<div class="line">        }</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+</div><!-- fragment --></li>
+<li>Add the callback function for the user button. <div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> user_button_callback(<span class="keywordtype">void</span> *handler_arg, mtb_hal_gpio_event_t event)</div>
+<div class="line">{</div>
+<div class="line">    (void) handler_arg;</div>
+<div class="line">    (void) event;</div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">#if defined(COMPONENT_RTOS_AWARE)</span></div>
+<div class="line">    BaseType_t higher_priority_task_woken = pdFALSE;</div>
+<div class="line">    vTaskNotifyGiveFromISR(mtb_lfs_task_handle, &amp;higher_priority_task_woken);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">/* Yield if xHigherPriorityTaskWoken was set to true */</span></div>
+<div class="line">    portYIELD_FROM_ISR(higher_priority_task_woken);</div>
+<div class="line"><span class="preprocessor">#else</span></div>
+<div class="line">    btn_press = <span class="keyword">true</span>;</div>
+<div class="line"><span class="preprocessor">#endif </span><span class="comment">/* #if defined(COMPONENT_RTOS_AWARE) */</span><span class="preprocessor"></span></div>
+<div class="line">}</div>
+</div><!-- fragment --></li>
+<li>Add the interrupt handler for the user button. <div class="fragment"><div class="line"><span class="keywordtype">void</span> btn_isr(<span class="keywordtype">void</span>)</div>
+<div class="line">{</div>
+<div class="line">    mtb_hal_gpio_process_interrupt(&amp;button_obj);</div>
+<div class="line">}</div>
+</div><!-- fragment --></li>
+<li>Add the function for the initialization user button. <div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> btn_init(<span class="keywordtype">void</span>)</div>
+<div class="line">{</div>
+<div class="line">    cy_en_sysint_status_t  pdl_sysint_status;</div>
+<div class="line">    <span class="comment">/* Initialize the user button used for erasing the block device. */</span></div>
+<div class="line">    mtb_hal_gpio_setup(&amp;button_obj, CYBSP_USER_BTN_PORT_NUM, CYBSP_USER_BTN_PIN);</div>
+<div class="line">    mtb_hal_gpio_configure(&amp;button_obj, MTB_HAL_GPIO_DIR_INPUT, MTB_HAL_GPIO_DRIVE_PULLUP);</div>
+<div class="line">    mtb_hal_gpio_write(&amp;button_obj, CYBSP_BTN_OFF);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">/* Configure &amp; the user button interrupt */</span></div>
+<div class="line">    mtb_hal_gpio_register_callback(&amp;button_obj, user_button_callback, NULL);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">/* Configure interrupt for button */</span></div>
+<div class="line">    cy_stc_sysint_t btn_isr_config =</div>
+<div class="line">    {</div>
+<div class="line">        .intrSrc = CYBSP_USER_BTN_IRQ,</div>
+<div class="line">        .intrPriority = 3U</div>
+<div class="line">    };</div>
+<div class="line"> </div>
+<div class="line">    pdl_sysint_status = Cy_SysInt_Init(&amp;btn_isr_config, btn_isr);</div>
+<div class="line">    <span class="keywordflow">if</span> (CY_SYSINT_SUCCESS != pdl_sysint_status)</div>
+<div class="line">    {</div>
+<div class="line">        printf(<span class="stringliteral">&quot;Cy_SysInt_Init returns error status\n\r&quot;</span>);</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    NVIC_EnableIRQ((IRQn_Type) btn_isr_config.intrSrc);</div>
+<div class="line">    printf(<span class="stringliteral">&quot;Button is configured\n\r&quot;</span>);</div>
+<div class="line">}</div>
+</div><!-- fragment --></li>
+<li>Update main.c. <div class="fragment"><div class="line"><span class="preprocessor">#if defined (COMPONENT_RTOS_AWARE)</span></div>
+<div class="line">    <span class="comment">/* Create the user tasks. See the respective task definition for more</span></div>
+<div class="line"><span class="comment">     * details of these tasks.</span></div>
+<div class="line"><span class="comment">     */</span></div>
+<div class="line">    xTaskCreate(mtb_lfs_boot_count, <span class="stringliteral">&quot;LittleFs Task&quot;</span>, MTB_LFS_TASK_STACK_SIZE,</div>
+<div class="line">                NULL, (configMAX_PRIORITIES - 1), &amp;mtb_lfs_task_handle);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">/* Start the RTOS scheduler. This function should never return */</span></div>
+<div class="line">    vTaskStartScheduler();</div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">#else</span></div>
+<div class="line">    mtb_lfs_boot_count(NULL);</div>
+<div class="line"><span class="preprocessor">#endif </span><span class="comment">/* #if defined (COMPONENT_RTOS_AWARE) */</span><span class="preprocessor"></span></div>
 </div><!-- fragment --></li>
 </ol>
-<h1><a class="anchor" id="autotoc_md5"></a>
-Usage instructions</h1>
-<h2><a class="anchor" id="autotoc_md6"></a>
-For the usage in an RTOS environment:</h2>
+<p ><b>retarget-io configuration</b></p><ol type="1">
+<li>Add the retarget-io configuration function. <div class="fragment"><div class="line"><span class="keywordtype">void</span> retarget_io_config(<span class="keywordtype">void</span>)</div>
+<div class="line">{</div>
+<div class="line">    cy_rslt_t result;</div>
+<div class="line"> </div>
+<div class="line">    <span class="keyword">static</span> cy_stc_scb_uart_context_t  DEBUG_UART_context;</div>
+<div class="line">    <span class="keyword">static</span> mtb_hal_uart_t             DEBUG_UART_hal_obj;</div>
+<div class="line"> </div>
+<div class="line">    result = (cy_rslt_t)Cy_SCB_UART_Init(DEBUG_UART_HW, &amp;DEBUG_UART_config, &amp;DEBUG_UART_context);</div>
+<div class="line">    <span class="keywordflow">if</span> (result != CY_RSLT_SUCCESS)</div>
+<div class="line">    {</div>
+<div class="line">        CY_ASSERT(0);</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    Cy_SCB_UART_Enable(DEBUG_UART_HW);</div>
+<div class="line"> </div>
+<div class="line">    result = mtb_hal_uart_setup(&amp;DEBUG_UART_hal_obj, &amp;DEBUG_UART_hal_config, &amp;DEBUG_UART_context, NULL);</div>
+<div class="line">    <span class="keywordflow">if</span> (result != CY_RSLT_SUCCESS)</div>
+<div class="line">    {</div>
+<div class="line">        CY_ASSERT(0);</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    result = cy_retarget_io_init(&amp;DEBUG_UART_hal_obj);</div>
+<div class="line">    <span class="keywordflow">if</span> (result != CY_RSLT_SUCCESS)</div>
+<div class="line">    {</div>
+<div class="line">        CY_ASSERT(0);</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    printf(<span class="stringliteral">&quot;Retarget-io is configured\n\r&quot;</span>);</div>
+<div class="line">}</div>
+</div><!-- fragment --></li>
+<li>Call this function in main.c before any other littlefs functions <div class="fragment"><div class="line">    <span class="comment">/* Initialize retarget-io to use the debug UART port */</span></div>
+<div class="line">    retarget_io_config();</div>
+<div class="line"> </div>
+<div class="line">    printf(<span class="stringliteral">&quot;*****************************************&quot;</span></div>
+<div class="line">           <span class="stringliteral">&quot;mtb-littlefs Filesystem Quick start Guide&quot;</span></div>
+<div class="line">           <span class="stringliteral">&quot;***************************************** \n\n&quot;</span>);</div>
+</div><!-- fragment --></li>
+</ol>
+<h2><a class="anchor" id="section_qsg_project_execution"></a>
+Project execution</h2>
+<ol type="1">
+<li>Open a serial terminal. Set the serial port parameters to 8N1 and 115200 baud.</li>
+<li>Build and program the project.</li>
+<li>If the previous steps were correct, the logs will appear in the serial terminal.</li>
+<li>This example initializes the littlefs file system on the target memory device. Create a file with a boot count and a value updated at every button reset is pressed. Also if press the user button, The boot count value must reset to 0.</li>
+</ol>
+<h1><a class="anchor" id="section_conf_cons"></a>
+Configuration Considerations</h1>
+<p >The driver configuration details are described in the relevant section:</p><ul>
+<li><a class="el" href="group__group__lfs__spi__flash__bd.html">SPI Flash Block Device Driver</a></li>
+<li><a class="el" href="group__group__lfs__sd__bd.html">SD Card Block Device Driver</a></li>
+</ul>
+<dl class="section note"><dt>Note</dt><dd>The source files under *&lt;littlefs_path&gt;/bd* are ignored from auto-discovery. Therefore, they will be excluded from compilation because some of the files (e.g., <em>lfs_filebd.c</em>) use POSIX file APIs such as 'open()' and 'close()'. POSIX APIs are not supported by the ModusToolbox&trade;. If you implement POSIX APIs, you can include those files for compilation by adding them to the <code>SOURCES</code> and <code>INCLUDES</code> variables in the Makefile.</dd></dl>
+<h2><a class="anchor" id="section_rtos"></a>
+Usage in an RTOS environment:</h2>
 <ol type="1">
 <li>Add <a href="https://github.com/Infineon/freertos">FreeRTOS</a> using the Library Manager if FreeRTOS is your choice of RTOS.</li>
-<li>Add <a href="https://github.com/Infineon/abstraction-rtos">abstraction-rtos</a> using the Library Manager tool if you are using an RTOS other than FreeRTOS. <em>abstraction-rtos</em> is added automatically when you add FreeRTOS using the Library Manager.</li>
+<li>If you use a RTOS other than FreeRTOS, add <a href="https://github.com/Infineon/abstraction-rtos">abstraction-rtos</a> using the Library Manager tool. <em>abstraction-rtos</em> is added automatically when you add FreeRTOS using the Library Manager.</li>
 <li>Add <code>FREERTOS</code> to the components list when using FreeRTOS.</li>
 <li>Add <code>DEFINES=LFS_THREADSAFE</code> to enable the thread-safety for the littlefs APIs.</li>
 <li>Add <code>COMPONENTS=RTOS_AWARE</code> in the Makefile to enable RTOS-friendly features, such as waiting on a semaphore until read completion is indicated through an interrupt or a callback.</li>
 </ol>
-<p ><b>Note:</b> The source files under *&lt;littlefs_path&gt;/bd* are ignored from auto-discovery. Therefore, they will be excluded from compilation because some of the files (e.g., <em>lfs_filebd.c</em>) use POSIX file APIs such as <code>open()</code> and <code>close()</code>. POSIX APIs are not supported by the ModusToolbox™. If you implement POSIX APIs, you can include those files for compilation by adding them to the <code>SOURCES</code> and <code>INCLUDES</code> variables in the Makefile.</p>
-<h1><a class="anchor" id="autotoc_md7"></a>
+<h1><a class="anchor" id="section_dependencies"></a>
 Dependencies</h1>
-<p >The dependencies except <em>abstraction-rtos</em> are automatically pulled in when you run the <code>make getlibs</code> command in the ModusToolbox™.</p>
+<p >The dependencies except <em>abstraction-rtos</em> are automatically pulled in when you run the 'make getlibs' command in the ModusToolbox&trade;.</p>
 <ul>
 <li><a href="https://github.com/littlefs-project/littlefs">littlefs</a></li>
-<li><a href="https://github.com/Infineon/serial-flash">serial-flash</a></li>
-<li><p class="startli"><a href="https://github.com/Infineon/abstraction-rtos">abstraction-rtos</a> library if RTOS support is required.</p>
-<p class="startli"><b>Note:</b> <em>abstraction-rtos</em> is automatically pulled in only when you add FreeRTOS using the Library Manager; otherwise, add it manually.</p>
-</li>
+<li><a href="https://github.com/Infineon/serial-memory">serial-memory</a></li>
+<li><a href="https://github.com/Infineon/abstraction-rtos">abstraction-rtos</a> library if RTOS support is required.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md8"></a>
-Supported Devices</h1>
-<ul>
-<li>PSoC™ 6 MCUs (CAT1A)</li>
-<li>AIROC™ CYW20829 (CAT1B)</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md9"></a>
+<dl class="section note"><dt>Note</dt><dd><em>abstraction-rtos</em> is automatically pulled in only when you add FreeRTOS using the Library Manager; otherwise, add it manually.</dd></dl>
+<h1><a class="anchor" id="section_changelog"></a>
+Changelog</h1>
+<table class="doxtable">
+<tr>
+<th>Version</th><th>Changes</th><th>Reason for Change </th></tr>
+<tr>
+<td rowspan="1">3.0.0 </td><td>Migrate mtb-littlefs Middleware to the HAL Next flow </td><td></td></tr>
+</table>
+<h1><a class="anchor" id="section_more_info"></a>
 More Information</h1>
-<ul>
-<li><a href="https://github.com/Infineon/mtb-littlefs/blob/master/RELEASE.md">RELEASE.md</a></li>
-<li><a href="https://github.com/Infineon/mtb-example-psoc6-filesystem-littlefs-freertos">PSoC™ 6 MCU: littlefs Filesystem</a> code example</li>
-<li><a href="https://github.com/littlefs-project/littlefs">Littlefs filesystem</a></li>
-<li><a href="https://github.com/Infineon">Infineon GitHub</a></li>
-<li><a href="https://github.com/Infineon/modustoolbox-software">ModusToolbox™ software GitHub</a></li>
-<li><a href="https://www.infineon.com/cms/en/design-support/tools/sdk/modustoolbox-software/">ModusToolbox™ Software</a></li>
-<li><a href="https://github.com/Infineon/Code-Examples-for-ModusToolbox-Software">PSoC™ 6 MCU Code Examples using ModusToolbox™</a></li>
-<li><a href="https://community.infineon.com/t5/Knowledge-Base-Articles/How-to-Design-with-PSoC-6-MCU-KBA223067/ta-p/248857">How to Design with PSoC™ 6 MCU - KBA223067</a></li>
-</ul>
-<hr  />
-<p> © 2021-2024 Cypress Semiconductor Corporation, an Infineon Technologies Company. </p>
+<p >For more information, refer to the links in the <a href="https://github.com/Infineon/mtb-littlefs/blob/master/README.md#more-information">README.md</a> </p>
 </div></div><!-- PageDoc -->
 </div><!-- contents -->
 </div><!-- doc-content -->

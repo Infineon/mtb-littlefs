@@ -84,7 +84,6 @@ $(document).ready(function(){initNavTree('group__group__lfs__spi__flash__bd.html
 
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Data Structures</a> &#124;
 <a href="#define-members">Macros</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">SPI Flash Block Device Driver</div></div>
@@ -100,17 +99,11 @@ $(document).ready(function(){initNavTree('group__group__lfs__spi__flash__bd.html
 <p ><b>Note:</b></p><ul>
 <li>Add DEFINE=LFS_THREADSAFE in the Makefile when thread-safety is required.</li>
 <li>Add COMPONENTS=RTOS_AWARE for enabling the RTOS-friendly features such as waiting on a semaphore until the read completion is notified through a callback by serial-flash.</li>
-<li>XIP support in CAT1B devices: When the same memory is used for code execution (XIP) and storing data by Littlefs, macro ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH must be added to DEFINES variable in Makefile. When macro ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH is defined, the Littlefs does not use features of serial-flash not supported for this case, for example, asynchronous transfer. Also, the size of available for Littlefs memory must be restricted by the <a class="el" href="group__group__lfs__spi__flash__bd.html#gad606397bae4b654cba612321c33d460a">lfs_spi_flash_bd_configure_memory</a> function. <dl class="section note"><dt>Note</dt><dd>Disabling of the asynchronous transfer can impact the performance of RTOS environment.</dd></dl>
+<li>XIP support in CAT1B/CAT1D devices: When the same memory is used for code execution (XIP) and storing data by Littlefs, macro ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH must be added to DEFINES variable in Makefile. When macro ENABLE_XIP_LITTLEFS_ON_SAME_NOR_FLASH is defined, the Littlefs does not use features of serial-flash not supported for this case, for example, asynchronous transfer. Also, the size of available for Littlefs memory must be restricted by the <a class="el" href="group__group__lfs__spi__flash__bd.html#gad606397bae4b654cba612321c33d460a">lfs_spi_flash_bd_configure_memory</a> function. <dl class="section note"><dt>Note</dt><dd>Disabling of the asynchronous transfer can impact the performance of RTOS environment.</dd></dl>
 </li>
 <li>Littlefs can use the memory with blocks of the same size. For hybrid memory, it is compulsory to limit the size available for littlefs by the <a class="el" href="group__group__lfs__spi__flash__bd.html#gad606397bae4b654cba612321c33d460a">lfs_spi_flash_bd_configure_memory</a> function to use only same-size blocks. </li>
 </ul>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
-Data Structures</h2></td></tr>
-<tr class="memitem:structlfs__spi__flash__bd__config__t"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__group__lfs__spi__flash__bd.html#structlfs__spi__flash__bd__config__t">lfs_spi_flash_bd_config_t</a></td></tr>
-<tr class="memdesc:structlfs__spi__flash__bd__config__t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configuration structure for the SPI flash block device.  <a href="group__group__lfs__spi__flash__bd.html#structlfs__spi__flash__bd__config__t">More...</a><br /></td></tr>
-<tr class="separator:structlfs__spi__flash__bd__config__t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:gaeeca3756b74ba014a43339556b40453e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__group__lfs__spi__flash__bd.html#gaeeca3756b74ba014a43339556b40453e">LFS_SPI_FLASH_BD_TRACE</a>(...)</td></tr>
@@ -119,15 +112,12 @@ Macros</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gadc512a6ca48b34ab5f124a8d4a097595"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__group__lfs__spi__flash__bd.html#gadc512a6ca48b34ab5f124a8d4a097595">lfs_spi_flash_bd_get_default_config</a> (<a class="el" href="group__group__lfs__spi__flash__bd.html#structlfs__spi__flash__bd__config__t">lfs_spi_flash_bd_config_t</a> *bd_cfg)</td></tr>
-<tr class="memdesc:gadc512a6ca48b34ab5f124a8d4a097595"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches the default configuration for the block device for use with the <a class="el" href="group__group__lfs__spi__flash__bd.html#ga2757e78734174021644b85d7e2f6b708">lfs_spi_flash_bd_create()</a> function.  <a href="group__group__lfs__spi__flash__bd.html#gadc512a6ca48b34ab5f124a8d4a097595">More...</a><br /></td></tr>
-<tr class="separator:gadc512a6ca48b34ab5f124a8d4a097595"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad606397bae4b654cba612321c33d460a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__group__lfs__spi__flash__bd.html#gad606397bae4b654cba612321c33d460a">lfs_spi_flash_bd_configure_memory</a> (const struct lfs_config *lfs_cfg, uint32_t address, uint32_t region_size)</td></tr>
 <tr class="memdesc:gad606397bae4b654cba612321c33d460a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configures the memory region used by littlefs.  <a href="group__group__lfs__spi__flash__bd.html#gad606397bae4b654cba612321c33d460a">More...</a><br /></td></tr>
 <tr class="separator:gad606397bae4b654cba612321c33d460a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2757e78734174021644b85d7e2f6b708"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__group__lfs__spi__flash__bd.html#ga2757e78734174021644b85d7e2f6b708">lfs_spi_flash_bd_create</a> (struct lfs_config *lfs_cfg, const <a class="el" href="group__group__lfs__spi__flash__bd.html#structlfs__spi__flash__bd__config__t">lfs_spi_flash_bd_config_t</a> *bd_cfg)</td></tr>
-<tr class="memdesc:ga2757e78734174021644b85d7e2f6b708"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the SPI flash and populates the lfs_config structure with the default values.  <a href="group__group__lfs__spi__flash__bd.html#ga2757e78734174021644b85d7e2f6b708">More...</a><br /></td></tr>
-<tr class="separator:ga2757e78734174021644b85d7e2f6b708"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga848ea1ce62ac4f938a36d2ab08cbf2c4"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__group__lfs__spi__flash__bd.html#ga848ea1ce62ac4f938a36d2ab08cbf2c4">lfs_spi_flash_bd_create</a> (struct lfs_config *lfs_cfg, mtb_serial_memory_t *serial_memory_obj)</td></tr>
+<tr class="memdesc:ga848ea1ce62ac4f938a36d2ab08cbf2c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the SPI flash and populates the lfs_config structure with the default values.  <a href="group__group__lfs__spi__flash__bd.html#ga848ea1ce62ac4f938a36d2ab08cbf2c4">More...</a><br /></td></tr>
+<tr class="separator:ga848ea1ce62ac4f938a36d2ab08cbf2c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gafcfe68f0485727b03ea984f279a4ae6b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__group__lfs__spi__flash__bd.html#gafcfe68f0485727b03ea984f279a4ae6b">lfs_spi_flash_bd_destroy</a> (const struct lfs_config *lfs_cfg)</td></tr>
 <tr class="memdesc:gafcfe68f0485727b03ea984f279a4ae6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">De-initializes the SPI flash and frees the resources.  <a href="group__group__lfs__spi__flash__bd.html#gafcfe68f0485727b03ea984f279a4ae6b">More...</a><br /></td></tr>
 <tr class="separator:gafcfe68f0485727b03ea984f279a4ae6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -150,96 +140,6 @@ Functions</h2></td></tr>
 <tr class="memdesc:ga67811c8ef707ec932e9a9d47347d9f13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unlocks or sets the mutex associated with this block device.  <a href="group__group__lfs__spi__flash__bd.html#ga67811c8ef707ec932e9a9d47347d9f13">More...</a><br /></td></tr>
 <tr class="separator:ga67811c8ef707ec932e9a9d47347d9f13"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<hr/><h2 class="groupheader">Data Structure Documentation</h2>
-<a name="structlfs__spi__flash__bd__config__t" id="structlfs__spi__flash__bd__config__t"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#structlfs__spi__flash__bd__config__t">&#9670;&nbsp;</a></span>lfs_spi_flash_bd_config_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">struct lfs_spi_flash_bd_config_t</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<table class="fieldtable">
-<tr><th colspan="3">Data Fields</th></tr>
-<tr><td class="fieldtype">
-<a id="a0cef0e2e4361cd293eb1a497e859f8ce" name="a0cef0e2e4361cd293eb1a497e859f8ce"></a>const cy_stc_smif_mem_config_t *</td>
-<td class="fieldname">
-mem_config</td>
-<td class="fielddoc">
-Memory configuration structure that can be auto-generated using the QSPI Configurator tool. </td></tr>
-<tr><td class="fieldtype">
-<a id="adb5e0f068d6ea3355a5edd022f6bb6be" name="adb5e0f068d6ea3355a5edd022f6bb6be"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-io0</td>
-<td class="fielddoc">
-Data/IO pin 0 connected to the memory; pass NC when unused. </td></tr>
-<tr><td class="fieldtype">
-<a id="a15905dedd9356a9f1738bbd40ecc3a76" name="a15905dedd9356a9f1738bbd40ecc3a76"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-io1</td>
-<td class="fielddoc">
-Data/IO pin 1 connected to the memory; pass NC when unused. </td></tr>
-<tr><td class="fieldtype">
-<a id="a5bd0a789b1eb6a53947a087e5d3bec19" name="a5bd0a789b1eb6a53947a087e5d3bec19"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-io2</td>
-<td class="fielddoc">
-Data/IO pin 2 connected to the memory; pass NC when unused. </td></tr>
-<tr><td class="fieldtype">
-<a id="ab9862299a8a9b6618a29345bebab1559" name="ab9862299a8a9b6618a29345bebab1559"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-io3</td>
-<td class="fielddoc">
-Data/IO pin 3 connected to the memory; pass NC when unused. </td></tr>
-<tr><td class="fieldtype">
-<a id="a1f53bc48fa9fa1902c5b4c1096aad01f" name="a1f53bc48fa9fa1902c5b4c1096aad01f"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-io4</td>
-<td class="fielddoc">
-Data/IO pin 4 connected to the memory; pass NC when unused. </td></tr>
-<tr><td class="fieldtype">
-<a id="a55f74bf9e5d299ba432616ead6aaf417" name="a55f74bf9e5d299ba432616ead6aaf417"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-io5</td>
-<td class="fielddoc">
-Data/IO pin 5 connected to the memory; pass NC when unused. </td></tr>
-<tr><td class="fieldtype">
-<a id="a0b97a1221c4661ed35c7b57f618a3a84" name="a0b97a1221c4661ed35c7b57f618a3a84"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-io6</td>
-<td class="fielddoc">
-Data/IO pin 6 connected to the memory; pass NC when unused. </td></tr>
-<tr><td class="fieldtype">
-<a id="a706cddc9bd92ddc7da7dd15fbf0f3745" name="a706cddc9bd92ddc7da7dd15fbf0f3745"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-io7</td>
-<td class="fielddoc">
-Data/IO pin 7 connected to the memory; pass NC when unused. </td></tr>
-<tr><td class="fieldtype">
-<a id="a74843cdfd2f74f7f288ddf45c165d2e3" name="a74843cdfd2f74f7f288ddf45c165d2e3"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-sclk</td>
-<td class="fielddoc">
-Clock pin connected to the memory. </td></tr>
-<tr><td class="fieldtype">
-<a id="ae88376408ad2beb79fc22e5c69e45685" name="ae88376408ad2beb79fc22e5c69e45685"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-ssel</td>
-<td class="fielddoc">
-Slave select pin connected to the memory. </td></tr>
-<tr><td class="fieldtype">
-<a id="ae4df54a017bb95c6d9ab53edbed2836c" name="ae4df54a017bb95c6d9ab53edbed2836c"></a>uint32_t</td>
-<td class="fieldname">
-freq_hz</td>
-<td class="fielddoc">
-Clock frequency to be used with the memory. </td></tr>
-</table>
-
-</div>
-</div>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="gaeeca3756b74ba014a43339556b40453e" name="gaeeca3756b74ba014a43339556b40453e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gaeeca3756b74ba014a43339556b40453e">&#9670;&nbsp;</a></span>LFS_SPI_FLASH_BD_TRACE</h2>
@@ -263,32 +163,6 @@ Clock frequency to be used with the memory. </td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="gadc512a6ca48b34ab5f124a8d4a097595" name="gadc512a6ca48b34ab5f124a8d4a097595"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gadc512a6ca48b34ab5f124a8d4a097595">&#9670;&nbsp;</a></span>lfs_spi_flash_bd_get_default_config()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void lfs_spi_flash_bd_get_default_config </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group__group__lfs__spi__flash__bd.html#structlfs__spi__flash__bd__config__t">lfs_spi_flash_bd_config_t</a> *&#160;</td>
-          <td class="paramname"><em>bd_cfg</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Fetches the default configuration for the block device for use with the <a class="el" href="group__group__lfs__spi__flash__bd.html#ga2757e78734174021644b85d7e2f6b708">lfs_spi_flash_bd_create()</a> function. </p>
-<p >Default configuration: SFDP enabled, QSPI (IO0 to IO3) mode, 50 MHz clock. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">bd_cfg</td><td>Pointer to the block device configuration structure. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a id="gad606397bae4b654cba612321c33d460a" name="gad606397bae4b654cba612321c33d460a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gad606397bae4b654cba612321c33d460a">&#9670;&nbsp;</a></span>lfs_spi_flash_bd_configure_memory()</h2>
 
@@ -322,7 +196,7 @@ Clock frequency to be used with the memory. </td></tr>
 </div><div class="memdoc">
 
 <p>Configures the memory region used by littlefs. </p>
-<p >If this function is not called, the littlefs will use the whole size of the memory module. The function must be called before <a class="el" href="group__group__lfs__spi__flash__bd.html#ga2757e78734174021644b85d7e2f6b708" title="Initializes the SPI flash and populates the lfs_config structure with the default values.">lfs_spi_flash_bd_create()</a>. After de-initialization of littlefs, the settings configured by this function are lost. </p><dl class="params"><dt>Parameters</dt><dd>
+<p >If this function is not called, the littlefs will use the whole size of the memory module. The function must be called before <a class="el" href="group__group__lfs__spi__flash__bd.html#ga848ea1ce62ac4f938a36d2ab08cbf2c4" title="Initializes the SPI flash and populates the lfs_config structure with the default values.">lfs_spi_flash_bd_create()</a>. After de-initialization of littlefs, the settings configured by this function are lost. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">lfs_cfg</td><td>The pointer to the block device configuration structure </td></tr>
     <tr><td class="paramname">address</td><td>The start of a memory region available for littlefs. </td></tr>
@@ -333,8 +207,8 @@ Clock frequency to be used with the memory. </td></tr>
 
 </div>
 </div>
-<a id="ga2757e78734174021644b85d7e2f6b708" name="ga2757e78734174021644b85d7e2f6b708"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga2757e78734174021644b85d7e2f6b708">&#9670;&nbsp;</a></span>lfs_spi_flash_bd_create()</h2>
+<a id="ga848ea1ce62ac4f938a36d2ab08cbf2c4" name="ga848ea1ce62ac4f938a36d2ab08cbf2c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga848ea1ce62ac4f938a36d2ab08cbf2c4">&#9670;&nbsp;</a></span>lfs_spi_flash_bd_create()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -348,8 +222,8 @@ Clock frequency to be used with the memory. </td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="group__group__lfs__spi__flash__bd.html#structlfs__spi__flash__bd__config__t">lfs_spi_flash_bd_config_t</a> *&#160;</td>
-          <td class="paramname"><em>bd_cfg</em>&#160;</td>
+          <td class="paramtype">mtb_serial_memory_t *&#160;</td>
+          <td class="paramname"><em>serial_memory_obj</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -363,7 +237,7 @@ Clock frequency to be used with the memory. </td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">lfs_cfg</td><td>Pointer to the lfs_config structure that will be initialized with the default values. </td></tr>
-    <tr><td class="paramname">bd_cfg</td><td>Pointer to the block device configuration structure. </td></tr>
+    <tr><td class="paramname">serial_memory_obj</td><td>Pointer to the serial memory object. </td></tr>
   </table>
   </dd>
 </dl>

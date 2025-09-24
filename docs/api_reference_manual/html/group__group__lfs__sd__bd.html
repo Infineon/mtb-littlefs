@@ -84,7 +84,6 @@ $(document).ready(function(){initNavTree('group__group__lfs__sd__bd.html',''); i
 
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Data Structures</a> &#124;
 <a href="#define-members">Macros</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">SD Card Block Device Driver</div></div>
@@ -102,12 +101,6 @@ $(document).ready(function(){initNavTree('group__group__lfs__sd__bd.html',''); i
 <li>Add COMPONENTS=RTOS_AWARE for enabling the RTOS-friendly features of the underlying SDHC HAL driver. An example of such feature is that the read function waits on a semaphore until read completion is indicated through an interrupt. </li>
 </ul>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
-Data Structures</h2></td></tr>
-<tr class="memitem:structlfs__sd__bd__config__t"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__group__lfs__sd__bd.html#structlfs__sd__bd__config__t">lfs_sd_bd_config_t</a></td></tr>
-<tr class="memdesc:structlfs__sd__bd__config__t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configuration structure for the SD block device.  <a href="group__group__lfs__sd__bd.html#structlfs__sd__bd__config__t">More...</a><br /></td></tr>
-<tr class="separator:structlfs__sd__bd__config__t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:ga660549d6086f7305914ede9d836fc000"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__group__lfs__sd__bd.html#ga660549d6086f7305914ede9d836fc000">LFS_SD_BD_TRACE</a>(...)</td></tr>
@@ -116,12 +109,9 @@ Macros</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ga16ca46e85a98b5d1a1f183df6a8940a6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__group__lfs__sd__bd.html#ga16ca46e85a98b5d1a1f183df6a8940a6">lfs_sd_bd_get_default_config</a> (<a class="el" href="group__group__lfs__sd__bd.html#structlfs__sd__bd__config__t">lfs_sd_bd_config_t</a> *bd_cfg)</td></tr>
-<tr class="memdesc:ga16ca46e85a98b5d1a1f183df6a8940a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches the default configuration for the block device for use with the <a class="el" href="group__group__lfs__sd__bd.html#ga49d5cf64bd2240c614cca4e450e72ade">lfs_sd_bd_create()</a> function.  <a href="group__group__lfs__sd__bd.html#ga16ca46e85a98b5d1a1f183df6a8940a6">More...</a><br /></td></tr>
-<tr class="separator:ga16ca46e85a98b5d1a1f183df6a8940a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga49d5cf64bd2240c614cca4e450e72ade"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__group__lfs__sd__bd.html#ga49d5cf64bd2240c614cca4e450e72ade">lfs_sd_bd_create</a> (struct lfs_config *lfs_cfg, const <a class="el" href="group__group__lfs__sd__bd.html#structlfs__sd__bd__config__t">lfs_sd_bd_config_t</a> *bd_cfg)</td></tr>
-<tr class="memdesc:ga49d5cf64bd2240c614cca4e450e72ade"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the SD card interface and populates the lfs_config structure with the default values.  <a href="group__group__lfs__sd__bd.html#ga49d5cf64bd2240c614cca4e450e72ade">More...</a><br /></td></tr>
-<tr class="separator:ga49d5cf64bd2240c614cca4e450e72ade"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7f91a3a82e218819c85b38cbd6b2aac3"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__group__lfs__sd__bd.html#ga7f91a3a82e218819c85b38cbd6b2aac3">lfs_sd_bd_create</a> (struct lfs_config *lfs_cfg, const mtb_hal_sdhc_t *sdhc_obj)</td></tr>
+<tr class="memdesc:ga7f91a3a82e218819c85b38cbd6b2aac3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the SD card interface and populates the lfs_config structure with the default values.  <a href="group__group__lfs__sd__bd.html#ga7f91a3a82e218819c85b38cbd6b2aac3">More...</a><br /></td></tr>
+<tr class="separator:ga7f91a3a82e218819c85b38cbd6b2aac3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga739c5699c697fc686d7754ad23561614"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__group__lfs__sd__bd.html#ga739c5699c697fc686d7754ad23561614">lfs_sd_bd_destroy</a> (const struct lfs_config *lfs_cfg)</td></tr>
 <tr class="memdesc:ga739c5699c697fc686d7754ad23561614"><td class="mdescLeft">&#160;</td><td class="mdescRight">De-initializes the SD interface and frees the resources.  <a href="group__group__lfs__sd__bd.html#ga739c5699c697fc686d7754ad23561614">More...</a><br /></td></tr>
 <tr class="separator:ga739c5699c697fc686d7754ad23561614"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -144,138 +134,6 @@ Functions</h2></td></tr>
 <tr class="memdesc:ga716190b32d03e242da72c53f03ee7f8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unlocks or sets the mutex associated with this block device.  <a href="group__group__lfs__sd__bd.html#ga716190b32d03e242da72c53f03ee7f8e">More...</a><br /></td></tr>
 <tr class="separator:ga716190b32d03e242da72c53f03ee7f8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<hr/><h2 class="groupheader">Data Structure Documentation</h2>
-<a name="structlfs__sd__bd__config__t" id="structlfs__sd__bd__config__t"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#structlfs__sd__bd__config__t">&#9670;&nbsp;</a></span>lfs_sd_bd_config_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">struct lfs_sd_bd_config_t</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<table class="fieldtable">
-<tr><th colspan="3">Data Fields</th></tr>
-<tr><td class="fieldtype">
-<a id="aa2a813d6cff64fd3c32b7d46939f5bda" name="aa2a813d6cff64fd3c32b7d46939f5bda"></a>cyhal_sdhc_t</td>
-<td class="fieldname">
-sdhc_obj</td>
-<td class="fielddoc">
-Object for use with the SDHC HAL driver. </td></tr>
-<tr><td class="fieldtype">
-<a id="a99748d778371eb2e628ad87ec15b25a9" name="a99748d778371eb2e628ad87ec15b25a9"></a>cyhal_sdhc_config_t</td>
-<td class="fieldname">
-sdhc_config</td>
-<td class="fielddoc">
-Card configuration structure to be passed to the HAL driver. </td></tr>
-<tr><td class="fieldtype">
-<a id="a5fb3351ec9bbefed2c2428bf42e2b93d" name="a5fb3351ec9bbefed2c2428bf42e2b93d"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-cmd</td>
-<td class="fielddoc">
-The pin connected to the command signal. </td></tr>
-<tr><td class="fieldtype">
-<a id="afdfc71e5d179bf38c3778cfc910581aa" name="afdfc71e5d179bf38c3778cfc910581aa"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-clk</td>
-<td class="fielddoc">
-The pin connected to the clock signal. </td></tr>
-<tr><td class="fieldtype">
-<a id="a60a5451967c607a48910c8b2d0508494" name="a60a5451967c607a48910c8b2d0508494"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-data0</td>
-<td class="fielddoc">
-The pin connected to the data0 signal. </td></tr>
-<tr><td class="fieldtype">
-<a id="a6a1ec5be5132a18734bc3034b9196b81" name="a6a1ec5be5132a18734bc3034b9196b81"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-data1</td>
-<td class="fielddoc">
-The pin connected to the data1 signal. </td></tr>
-<tr><td class="fieldtype">
-<a id="a50c6ba006780020804cfb238bad8afb1" name="a50c6ba006780020804cfb238bad8afb1"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-data2</td>
-<td class="fielddoc">
-The pin connected to the data2 signal. </td></tr>
-<tr><td class="fieldtype">
-<a id="a5d83d158d8364fd1ed1a2296a346d12a" name="a5d83d158d8364fd1ed1a2296a346d12a"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-data3</td>
-<td class="fielddoc">
-The pin connected to the data3 signal. </td></tr>
-<tr><td class="fieldtype">
-<a id="aed23a0f19c7be93b6a9758bd1513ac35" name="aed23a0f19c7be93b6a9758bd1513ac35"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-data4</td>
-<td class="fielddoc">
-The pin connected to the data4 signal; pass NC when unused. </td></tr>
-<tr><td class="fieldtype">
-<a id="ab16a88300010d8746849068759361a6a" name="ab16a88300010d8746849068759361a6a"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-data5</td>
-<td class="fielddoc">
-The pin connected to the data5 signal; pass NC when unused. </td></tr>
-<tr><td class="fieldtype">
-<a id="a0f4f7896cfc424c9796666d908994582" name="a0f4f7896cfc424c9796666d908994582"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-data6</td>
-<td class="fielddoc">
-The pin connected to the data6 signal; pass NC when unused. </td></tr>
-<tr><td class="fieldtype">
-<a id="af49bc3ecb342d6047f49ec1b12547443" name="af49bc3ecb342d6047f49ec1b12547443"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-data7</td>
-<td class="fielddoc">
-The pin connected to the data7 signal; pass NC when unused. </td></tr>
-<tr><td class="fieldtype">
-<a id="aef85b526b08fc77e04b582f50bed0e14" name="aef85b526b08fc77e04b582f50bed0e14"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-card_detect</td>
-<td class="fielddoc">
-The pin connected to the card detect signal. </td></tr>
-<tr><td class="fieldtype">
-<a id="a65b5d404b0163f1d33bb1b385a2c7079" name="a65b5d404b0163f1d33bb1b385a2c7079"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-io_volt_sel</td>
-<td class="fielddoc">
-The pin connected to the voltage select signal. </td></tr>
-<tr><td class="fieldtype">
-<a id="a8d3ae5078994837264ebb850c9a50cdf" name="a8d3ae5078994837264ebb850c9a50cdf"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-card_if_pwr_en</td>
-<td class="fielddoc">
-The pin connected to the card interface power enable signal. </td></tr>
-<tr><td class="fieldtype">
-<a id="add99e56a0aa16b3d6d1c8ca15aebe7c0" name="add99e56a0aa16b3d6d1c8ca15aebe7c0"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-card_mech_write_prot</td>
-<td class="fielddoc">
-The pin connected to the write protect signal. </td></tr>
-<tr><td class="fieldtype">
-<a id="a68c02e6971243a7fb5871d3fb63e83a3" name="a68c02e6971243a7fb5871d3fb63e83a3"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-led_ctrl</td>
-<td class="fielddoc">
-The pin connected to the LED control signal. </td></tr>
-<tr><td class="fieldtype">
-<a id="afaace2ec96743dbde0dc39ac560d4017" name="afaace2ec96743dbde0dc39ac560d4017"></a>cyhal_gpio_t</td>
-<td class="fieldname">
-card_emmc_reset</td>
-<td class="fielddoc">
-The pin connected to the eMMC card reset signal. </td></tr>
-<tr><td class="fieldtype">
-<a id="abf1b0a68dc3cef2d433d1534564d3471" name="abf1b0a68dc3cef2d433d1534564d3471"></a>cyhal_clock_t *</td>
-<td class="fieldname">
-block_clk</td>
-<td class="fielddoc">
-The clock to use can be shared, if not provided a new clock will be allocated. </td></tr>
-</table>
-
-</div>
-</div>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="ga660549d6086f7305914ede9d836fc000" name="ga660549d6086f7305914ede9d836fc000"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga660549d6086f7305914ede9d836fc000">&#9670;&nbsp;</a></span>LFS_SD_BD_TRACE</h2>
@@ -299,34 +157,8 @@ The clock to use can be shared, if not provided a new clock will be allocated. <
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="ga16ca46e85a98b5d1a1f183df6a8940a6" name="ga16ca46e85a98b5d1a1f183df6a8940a6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga16ca46e85a98b5d1a1f183df6a8940a6">&#9670;&nbsp;</a></span>lfs_sd_bd_get_default_config()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void lfs_sd_bd_get_default_config </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group__group__lfs__sd__bd.html#structlfs__sd__bd__config__t">lfs_sd_bd_config_t</a> *&#160;</td>
-          <td class="paramname"><em>bd_cfg</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Fetches the default configuration for the block device for use with the <a class="el" href="group__group__lfs__sd__bd.html#ga49d5cf64bd2240c614cca4e450e72ade">lfs_sd_bd_create()</a> function. </p>
-<p >Default configuration: SD card (card mode) with 3.3V signalling. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">bd_cfg</td><td>Pointer to the block device configuration structure. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="ga49d5cf64bd2240c614cca4e450e72ade" name="ga49d5cf64bd2240c614cca4e450e72ade"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga49d5cf64bd2240c614cca4e450e72ade">&#9670;&nbsp;</a></span>lfs_sd_bd_create()</h2>
+<a id="ga7f91a3a82e218819c85b38cbd6b2aac3" name="ga7f91a3a82e218819c85b38cbd6b2aac3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga7f91a3a82e218819c85b38cbd6b2aac3">&#9670;&nbsp;</a></span>lfs_sd_bd_create()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -340,8 +172,8 @@ The clock to use can be shared, if not provided a new clock will be allocated. <
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="group__group__lfs__sd__bd.html#structlfs__sd__bd__config__t">lfs_sd_bd_config_t</a> *&#160;</td>
-          <td class="paramname"><em>bd_cfg</em>&#160;</td>
+          <td class="paramtype">const mtb_hal_sdhc_t *&#160;</td>
+          <td class="paramname"><em>sdhc_obj</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -355,7 +187,7 @@ The clock to use can be shared, if not provided a new clock will be allocated. <
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">lfs_cfg</td><td>Pointer to the lfs_config structure that will be initialized with the default values. </td></tr>
-    <tr><td class="paramname">bd_cfg</td><td>Pointer to the block device configuration structure. </td></tr>
+    <tr><td class="paramname">sdhc_obj</td><td>Pointer to the SDHC HAL object. </td></tr>
   </table>
   </dd>
 </dl>

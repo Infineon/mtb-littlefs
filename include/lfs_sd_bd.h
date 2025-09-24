@@ -8,7 +8,7 @@
  *
  *******************************************************************************
  * \copyright
- * (c) (2021-2024), Cypress Semiconductor Corporation (an Infineon company) or
+ * (c) (2021-2025), Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -72,8 +72,7 @@
 #include "lfs.h"
 #include "lfs_util.h"
 #include "cy_result.h"
-#include "cyhal_sdhc.h"
-#include "cyhal_gpio.h"
+#include "mtb_hal_sdhc.h"
 #include <stdbool.h>
 
 #ifdef CY_IP_MXSDHC
@@ -111,52 +110,17 @@ extern "C"
 #define LFS_SD_BD_TRACE(...)
 #endif
 
-/**
- * Configuration structure for the SD block device. The members of this
- * structure is passed to the SDHC HAL driver. See the device-specific HAL
- * driver API reference manual for details.
- */
-typedef struct
-{
-    cyhal_sdhc_t sdhc_obj; /**< Object for use with the SDHC HAL driver. */
-    cyhal_sdhc_config_t sdhc_config; /**< Card configuration structure to be passed to the HAL driver. */
-    cyhal_gpio_t cmd;   /**< The pin connected to the command signal. */
-    cyhal_gpio_t clk;   /**< The pin connected to the clock signal. */
-    cyhal_gpio_t data0; /**< The pin connected to the data0 signal. */
-    cyhal_gpio_t data1; /**< The pin connected to the data1 signal. */
-    cyhal_gpio_t data2; /**< The pin connected to the data2 signal. */
-    cyhal_gpio_t data3; /**< The pin connected to the data3 signal. */
-    cyhal_gpio_t data4; /**< The pin connected to the data4 signal; pass NC when unused. */
-    cyhal_gpio_t data5; /**< The pin connected to the data5 signal; pass NC when unused. */
-    cyhal_gpio_t data6; /**< The pin connected to the data6 signal; pass NC when unused. */
-    cyhal_gpio_t data7; /**< The pin connected to the data7 signal; pass NC when unused. */
-    cyhal_gpio_t card_detect; /**< The pin connected to the card detect signal. */
-    cyhal_gpio_t io_volt_sel; /**< The pin connected to the voltage select signal. */
-    cyhal_gpio_t card_if_pwr_en; /**< The pin connected to the card interface power enable signal. */
-    cyhal_gpio_t card_mech_write_prot; /**< The pin connected to the write protect signal. */
-    cyhal_gpio_t led_ctrl; /**< The pin connected to the LED control signal. */
-    cyhal_gpio_t card_emmc_reset; /**< The pin connected to the eMMC card reset signal. */
-    cyhal_clock_t * block_clk; /**< The clock to use can be shared, if not provided a new clock will be allocated. */
-} lfs_sd_bd_config_t;
-
-/**
- * \brief Fetches the default configuration for the block device for use with
- * the \ref lfs_sd_bd_create() function.
- * Default configuration: SD card (card mode) with 3.3V signalling.
- * \param bd_cfg Pointer to the block device configuration structure.
- */
-void lfs_sd_bd_get_default_config(lfs_sd_bd_config_t *bd_cfg);
 
 /**
  * \brief Initializes the SD card interface and populates the lfs_config
  * structure with the default values.
  * \param lfs_cfg Pointer to the lfs_config structure that will be
           initialized with the default values.
- * \param bd_cfg Pointer to the block device configuration structure.
+ * \param sdhc_obj Pointer to the SDHC HAL object.
  * \returns CY_RSLT_SUCCESS if the initialization was successful; an error code
  *          otherwise.
  */
-cy_rslt_t lfs_sd_bd_create(struct lfs_config *lfs_cfg, const lfs_sd_bd_config_t *bd_cfg);
+cy_rslt_t lfs_sd_bd_create(struct lfs_config *lfs_cfg, const mtb_hal_sdhc_t *sdhc_obj);
 
 /**
  * \brief De-initializes the SD interface and frees the resources.
